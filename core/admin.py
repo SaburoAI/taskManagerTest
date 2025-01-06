@@ -38,7 +38,10 @@ class TblSchoolidAdmin(admin.ModelAdmin):
     form = TblSchoolidAdminForm
 
 admin.site.register(TblSchoolid, TblSchoolidAdmin)
-admin.site.register(TblCurrDetail, TblCurrDetailAdmin)
 admin.site.register(TblUser)
-admin.site.register(TblMaster)
+admin.site.register(TblTask)
+admin.site.register(TblCurrDetail, TblCurrDetailAdmin)
 admin.site.register(TblCurriculum, TblCurriculumAdmin)
+admin.site.register(TblSubject, TblSubjectAdmin)
+admin.site.register(TblTestname)
+admin.site.register(TblGrades, TblGradesAdmin)

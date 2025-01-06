@@ -5,19 +5,19 @@ from django.dispatch import receiver
 
 
 class TblSchoolid(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    s_id = models.TextField(db_comment='スクールID')
-    s_pass = models.TextField(db_comment='パスワード')
-    l_login_date = models.DateTimeField(blank=True, null=True, db_comment='最終ログイン日')
+    id = models.SmallAutoField(primary_key=True)
+    s_id = models.TextField()
+    s_pass = models.TextField()
+    l_login_date = models.DateTimeField(blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'tbl_schoolid'
     def __str__(self):
         return self.s_id
-    
+
 @receiver(post_save, sender=TblSchoolid)
 def create_user_for_school(sender, instance, created, **kwargs):
     if created:
@@ -27,7 +27,7 @@ def create_user_for_school(sender, instance, created, **kwargs):
             s=instance,
             u_auth=2
         )
-    
+
 class TblUser(models.Model):
     AUTH_TYPE = [
         (-1, '保護者'),
@@ -35,29 +35,29 @@ class TblUser(models.Model):
         (1, '講師'),
         (2, '教室'),
     ]
-    u_id = models.SmallAutoField(primary_key=True, db_comment='no')
-    u_name = models.TextField(db_comment='ユーザー名')
-    u_pass = models.TextField(db_comment='パスワード')
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE,db_comment='スクールID')
-    u_auth = models.SmallIntegerField(choices=AUTH_TYPE,db_comment='権限',default=0)
-    l_login_date = models.DateTimeField(auto_now=True, blank=True, null=True, db_comment='最終ログイン日')
+    u_id = models.SmallAutoField(primary_key=True)
+    u_name = models.TextField()
+    u_pass = models.TextField()
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
+    u_auth = models.SmallIntegerField(choices=AUTH_TYPE,default=0)
+    l_login_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'tbl_user'
-        
+
     def __str__(self):
         return self.u_name
-        
+
 
 class TblSubject(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1,db_comment='スクールID')
-    sub_name = models.TextField(db_comment='科目名')
+    id = models.SmallAutoField(primary_key=True)
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1)
+    sub_name = models.TextField()
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
@@ -66,15 +66,15 @@ class TblSubject(models.Model):
         return self.sub_name
 
 class TblCurriculum(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1,db_comment='スクールID')
-    curr_name = models.TextField(db_comment='カリキュラム名')
-    sub_id = models.SmallIntegerField(db_comment='科目ID')
-    sub_name = models.TextField(blank=True, null=True,db_comment='科目名')
-    next_num = models.SmallIntegerField(blank=True, default=1, db_comment='次の番号')
-    sub_enable = models.BooleanField(blank=True, null=True, db_comment='有効無効',default=True)
+    id = models.SmallAutoField(primary_key=True)
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1)
+    curr_name = models.TextField()
+    sub_id = models.SmallIntegerField()
+    sub_name = models.TextField(blank=True, null=True)
+    next_num = models.SmallIntegerField(blank=True, default=1)
+    sub_enable = models.BooleanField(blank=True, null=True,default=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
@@ -89,16 +89,16 @@ class TblCurriculum(models.Model):
         return self.curr_name
 
 class TblCurrDetail(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1,db_comment='スクールID')
-    curr = models.ForeignKey(TblCurriculum, default=10, on_delete=models.CASCADE,db_comment='カリキュラムID')
-    sub_id = models.SmallIntegerField(db_comment='科目ID')
-    task_id = models.SmallIntegerField(db_comment='タスクID')
-    task_name = models.TextField(db_comment='タスク名')
-    next_num = models.SmallIntegerField(db_comment='次の番号')
-    task_enable = models.BooleanField(default=False, db_comment='有効無効')
+    id = models.SmallAutoField(primary_key=True)
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1)
+    curr = models.ForeignKey(TblCurriculum, default=10, on_delete=models.CASCADE)
+    sub_id = models.SmallIntegerField()
+    task_id = models.SmallIntegerField()
+    task_name = models.TextField()
+    next_num = models.SmallIntegerField()
+    task_enable = models.BooleanField(default=False)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
@@ -134,28 +134,28 @@ class TblTask(models.Model):
         (3, 'C'),
     ]
 
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    # u_id = models.SmallIntegerField(null=True, db_comment='ユーザーID')
-    u = models.ForeignKey(TblUser, on_delete=models.CASCADE, default=1,db_comment='ユーザーID')
-    # s = models.ForeignKey(TblUser, on_delete=models.CASCADE, default=10,db_comment='tbl_SchoolID')
-    curr = models.ForeignKey(TblCurriculum, default=1, on_delete=models.CASCADE,db_comment='カリキュラムID')
-    # curr_id = models.SmallIntegerField(default=1, db_comment='カリキュラムID')
-    sub_id = models.SmallIntegerField(db_comment='科目ID')
-    task_id = models.SmallIntegerField(db_comment='タスクID')
-    status = models.SmallIntegerField(choices=STATUS_CHOICES,default=0, db_comment='ステータス')
-    grade = models.SmallIntegerField(choices=GRADE_CHOICES, default=0,db_comment='重要度')
-    priority = models.SmallIntegerField(choices=PRIORITY_CHOICES, default=0,db_comment='優先度')
-    tag = models.TextField(default='未設定',db_comment='タグ')
-    deadline = models.DateField(blank=True, null=True, db_comment='期限')
-    number_1stchk = models.DateField(db_column='1stCHK', blank=True, null=True, db_comment='初回チェック日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_1streview = models.DateField(db_column='1stReview', blank=True, null=True, db_comment='初回復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_2ndchk = models.DateField(db_column='2ndCHK', blank=True, null=True, db_comment='2回目復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_3rdchk = models.DateField(db_column='3rdCHK', blank=True, null=True, db_comment='3回目復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_4thchk = models.DateField(db_column='4thCHK', blank=True, null=True, db_comment='4回目復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_5thchk = models.DateField(db_column='5thCHK', blank=True, null=True, db_comment='5回目復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
-    number_6thchk = models.DateField(db_column='6thCHK', blank=True, null=True, db_comment='6回目復習日')  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    id = models.SmallAutoField(primary_key=True)
+    # u_id = models.SmallIntegerField(null=True)
+    u = models.ForeignKey(TblUser, on_delete=models.CASCADE, default=1)
+    # s = models.ForeignKey(TblUser, on_delete=models.CASCADE, default=10)
+    curr = models.ForeignKey(TblCurriculum, default=1, on_delete=models.CASCADE)
+    # curr_id = models.SmallIntegerField(default=1)
+    sub_id = models.SmallIntegerField()
+    task_id = models.SmallIntegerField()
+    status = models.SmallIntegerField(choices=STATUS_CHOICES,default=0)
+    grade = models.SmallIntegerField(choices=GRADE_CHOICES, default=0)
+    priority = models.SmallIntegerField(choices=PRIORITY_CHOICES, default=0)
+    tag = models.TextField(default='未設定')
+    deadline = models.DateField(blank=True, null=True)
+    number_1stchk = models.DateField(db_column='1stCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_1streview = models.DateField(db_column='1stReview', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_2ndchk = models.DateField(db_column='2ndCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_3rdchk = models.DateField(db_column='3rdCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_4thchk = models.DateField(db_column='4thCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_5thchk = models.DateField(db_column='5thCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
+    number_6thchk = models.DateField(db_column='6thCHK', blank=True, null=True)  # Field name made lowercase. Field renamed because it wasn't a valid Python identifier.
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
@@ -177,12 +177,12 @@ class TblTask(models.Model):
 
 
 class TblTestname(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE,db_comment='tbl_SchoolID')
-    name = models.TextField(db_comment='テスト名')
-    dsp_order = models.SmallIntegerField(db_comment='表示順')
+    id = models.SmallAutoField(primary_key=True)
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
+    name = models.TextField()
+    dsp_order = models.SmallIntegerField()
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
@@ -191,13 +191,13 @@ class TblTestname(models.Model):
     def __str__(self):
         return self.name
 class TblGrades(models.Model):
-    id = models.SmallAutoField(primary_key=True, db_comment='管理用の連番')
-    user = models.ForeignKey(TblUser, on_delete=models.CASCADE,db_comment='ユーザーID')
-    tst = models.ForeignKey(TblTestname, on_delete=models.CASCADE, db_comment='テスト名ID')
-    rank = models.SmallIntegerField(db_comment='順位')
-    score = models.SmallIntegerField(db_comment='点数')
+    id = models.SmallAutoField(primary_key=True)
+    user = models.ForeignKey(TblUser, on_delete=models.CASCADE)
+    tst = models.ForeignKey(TblTestname, on_delete=models.CASCADE)
+    rank = models.SmallIntegerField()
+    score = models.SmallIntegerField()
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
-    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True, db_comment='登録日')
+    reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
         managed = False
