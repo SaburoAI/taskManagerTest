@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register{% endblock %}
+
+{% block main %}
+<body>
+
+  <main>
+
+
+
+    <div class="container">
+
+      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+              <div class="d-flex justify-content-center py-4">
+                <a href="index.html" class="logo d-flex align-items-center w-auto">
+                  <img src="{% static 'assets/img/logo.png' %}" alt="">
+                  <span class="d-none d-lg-block">アプリ名</span>
+                </a>
+              </div><!-- End Logo -->
+
+              <div class="card mb-3">
+
+                <div class="card-body">
+
+                  <div class="pt-4 pb-2">
+                    <h5 class="card-title text-center pb-0 fs-4">アカウント作成</h5>
+                  </div>
+
+
+
+                 <form method="post" class="row g-3 needs-validation" novalidate>
+                    {% csrf_token %}
+                    <div class="col-12">
+                      <label for="u_auth" class="form-label">ユーザータイプ</label>
+                      <select name="u_auth" class="form-select" required>
+                        <option value="" selected disabled>アカウント種類を選択</option>
+                        <option value="0">生徒</option>
+                        <option value="1">講師</option>
+                        <option value="2">管理者</option>
+                      </select>
+                      <div class="invalid-feedback">ユーザータイプを選択してください。</div>
+                    </div>
+
+                    <div class="col-12">
+                      <label for="u_name" class="form-label">ログインID</label>
+                      <input type="text" name="u_name" class="form-control" id="username" required>
+                      <div class="invalid-feedback">ログインIDを入力してください。</div>
+                    </div>
+
+
+                    <div class="col-12">
+                      <label for="u_pass" class="form-label">パスワード</label>
+                      <input type="u_pass" name="u_pass" class="form-control" id="password" required>
+                      <div class="invalid-feedback">パスワードを入力してください。</div>
+                    </div>
+
+                    {% comment %}
+                     <div class="col-12">
+                      <label for="password_confirm" class="form-label">パスワード確認</label>
+                      <input type="password" name="password_confirm" class="form-control" id="password_confirm" required>
+                      <div class="invalid-feedback">パスワード確認を入力してください。</div>
+                    </div>
+                     {% endcomment %}
+
+                    <div class="col-12">
+                      <button class="btn btn-success w-100" type="submit">アカウント作成</button>
+                    </div>
+                  </form>
+
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main><!-- End #main -->
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Vendor JS Files -->
+  <script src="{% static 'assets/vendor/apexcharts/apexcharts.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/chart.js/chart.umd.js' %}"></script>
+  <script src="{% static 'assets/vendor/echarts/echarts.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/quill/quill.js' %}"></script>
+  <script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
+  <script src="{% static 'assets/vendor/tinymce/tinymce.min.js' %}"></script>
+  <script src="{% static 'assets/vendor/php-email-form/validate.js' %}"></script>
+
+  <!-- Template Main JS File -->
+  <script src="{% static 'assets/js/main.js' %}"></script>
+
+</body>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% load i18n %}
+
+ <!-- ======= Sidebar ======= -->
+ <aside id="sidebar" class="sidebar">
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+  
+
+
+      <li class="nav-heading"></li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'root'%}">
+          <i class="bi bi-person"></i>
+          <span>トップページ</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'my_page' %}">
+          <i class="bi bi-person"></i>
+          <span>マイページ</span>
+        </a>
+      </li>
+      <!-- End Profile Page Nav -->
+
+
+
+       <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'library' %}">
+          <i class="bi bi-folder2-open"></i>
+          <span>ライブラリー</span>
+        </a>
+      </li>
+
+
+{% if account.u_auth == 0 %}
+
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="{% url 'task_add' %}">
+                    <i class="bi bi-question-circle"></i>
+                    <span>タスク追加</span>
+                </a>
+            </li>
+
+{% endif %}
+
+{% if account.u_auth == 1 or account.u_auth == 2 %}
+<li class="nav-item">
+  <a class="nav-link collapsed" href="{% url 'task_add_student_list' %}">
+      <i class="bi bi-question-circle"></i>
+      <span>タスク割り当て</span>
+  </a>
+</li>
+{% endif %}
+
+      {% if request.session.school_id %}
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'create_user'%}">
+          <i class="bi bi-card-list"></i>
+          <span>アカウント登録</span>
+        </a>
+      </li>
+      {% endif %}
+
+  
+
+    </ul>
+  
+  </aside><!-- End Sidebar-->

@@ -1,0 +1,44 @@
+{% extends "registration/base.html" %}
+
+{% block title %}Login{% endblock title %}
+
+{% block content %}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-5">
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <div class="card-header"><h3 class="text-center font-weight-light my-4">Login Form</h3></div>
+                <div class="card-body">
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="inputUsername" type="text" placeholder="Username" name="username" />
+                            <label for="inputUsername">Username</label>
+                        </div>
+                        {% if form.username.errors %}
+                            {{ form.username.errors }}
+                        {% endif %}
+                        <div class="form-floating mb-3">
+                            <input class="form-control" id="inputPassword" type="password" placeholder="Password" name="password" />
+                            <label for="inputPassword">Password</label>
+                        </div>
+                        {% if form.password.errors %}
+                            {{ form.password.errors }}
+                        {% endif %}
+                        {% if form.non_field_errors %}
+                            {{ form.non_field_errors }}
+                        {% endif %}
+                        <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
+                            <a class="btn btn-secondary" href=""><i class="fas fa-home me-1"></i>Back to home</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in me-1"></i>Sign in</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer py-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

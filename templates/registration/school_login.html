@@ -1,0 +1,134 @@
+{% extends "registration/base.html" %}
+{% load static %}
+{% block title %}ログイン{% endblock %}
+{% block main %}
+<h2>教室ログイン</h2>
+<form method="post">
+    {% csrf_token %}
+    <label for="s_id">スクールID:</label>
+    <input type="text" id="s_id" name="s_id" required><br>
+    <label for="s_pass">パスワード:</label>
+    <input type="password" id="s_pass" name="s_pass" required><br>
+    <button type="submit">ログイン</button>
+</form>
+<a href="{% url 'student_login' %}">生徒ログイン</a>
+{% comment %} {% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+{% if messages %}
+  <ul>
+      {% for message in messages %}
+          <li>{{ message }}</li>
+      {% endfor %}
+  </ul>
+{% endif %}
+
+<script>
+  document.getElementById('login_type').addEventListener('change', function() {
+      var loginType = this.value;
+      if (loginType === 'school') {
+          document.getElementById('school_login_fields').style.display = 'block';
+          document.getElementById('student_login_fields').style.display = 'none';
+      } else {
+          document.getElementById('school_login_fields').style.display = 'none';
+          document.getElementById('student_login_fields').style.display = 'block';
+      }
+  });
+</script> {% endcomment %}
+
+    <div class="container">
+
+      <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
+        <div class="container">
+          <div class="row justify-content-center">
+            <div class="col-lg-4 col-md-6 d-flex flex-column align-items-center justify-content-center">
+
+              <div class="d-flex justify-content-center py-4">
+                <a href="" class="logo d-flex align-items-center w-auto">
+                  <img src="assets/img/logo.png" alt="">
+                  <span class="d-none d-lg-block">アプリ名</span>
+                </a>
+              </div><!-- End Logo -->
+
+              <div class="card mb-3">
+
+                <div class="card-body">
+
+                  <div class="pt-4 pb-2">
+                    <h5 class="card-title text-center pb-0 fs-4">ログイン画面</h5>
+                    <p class="text-center small">ユーザーIDとパスワードを入力して下さい</p>
+                  </div>
+
+                  <form action="" method="POST">
+                    {% csrf_token %}
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="inputUsername" type="text" placeholder="Username" name="username" />
+                        <label for="inputUsername">ユーザーID</label>
+                    </div>
+                    {% if form.username.errors %}
+                        {{ form.username.errors }}
+                    {% endif %}
+                    <div class="form-floating mb-3">
+                        <input class="form-control" id="inputPassword" type="password" placeholder="Password" name="password" />
+                        <label for="inputPassword">パスワード</label>
+                    </div>
+                    {% if form.password.errors %}
+                        {{ form.password.errors }}
+                    {% endif %}
+                    {% if form.non_field_errors %}
+                        {{ form.non_field_errors }}
+                    {% endif %}
+                    <div class="d-flex justify-content-center">
+                      <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in me-1"></i>ログイン</button>
+                    </div>
+                </form>
+
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+{% endblock %}
+
+
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+
+</body>
+
+</html>
+
+student_password = '2024stu01'
+encrypted_student_password = make_password(student_password)
+student = TblUser.objects.create(
+    u_name='stu01',
+    u_pass=encrypted_student_password,
+    s_id=1,
+    u_auth=1,
+    l_login_date=None,
+    update_date=None,
+    reg_date=None
+)
+print(f'Student account created: {student.u_name}')
+
+# 教室アカウントの作成
+school_password = '2024sch01'
+encrypted_school_password = make_password(school_password)
+school = TblSchoolid.objects.create(
+    s_id='basicSchool',
+    s_pass=encrypted_school_password,
+    l_login_date=None,
+    update_date=None,
+    reg_date=None
+)
+print(f'School account created: {school.s_id}')

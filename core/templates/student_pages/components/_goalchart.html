@@ -1,0 +1,45 @@
+          <!-- Budget Report -->
+          <div class="card">
+           
+            <div class="card-body pb-0">
+              <h5 class="card-title">科目別得点 </h5>
+
+              <div id="budgetChart" style="min-height: 400px;" class="echart"></div>
+
+              <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                  const userPredScore = {{ user_predScore|safe }};
+                  const goalScores = {{ goal_scores|safe }};
+                  const indicators = Object.keys(userPredScore).map(key => ({ name: key, max: 100 }));
+                  const values = Object.values(userPredScore);
+                  const goalValues = Object.values(goalScores);
+          
+                  var budgetChart = echarts.init(document.querySelector("#budgetChart")).setOption({
+                    legend: {
+                      data: ['目標得点率', 'あなたの予想得点率']
+                    },
+                    radar: {
+                      // shape: 'circle',
+                      indicator: indicators
+                    },
+                    series: [{
+                      name: 'goalScore vs nowScore',
+                      type: 'radar',
+                      data: [{
+                          value: goalValues,  // 目標得点率
+                          name: '目標得点率',
+                          
+                        },
+                        {
+                          value: values,
+                          name: 'あなたの予想得点率',
+                          areaStyle: {} 
+                        }
+                      ],
+
+                    }]
+                  });
+                });
+              </script>
+            </div>
+          </div><!-- End Budget Report -->

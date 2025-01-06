@@ -1,0 +1,94 @@
+<div class="card">
+  <div class="filter">
+    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+      <li class="dropdown-header text-start">
+        <h6>メニュー</h6>
+      </li>
+      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#addTestResultModal">テスト追加</a></li>
+    </ul>
+  </div>
+
+  <div class="card-body">
+    <h5 class="card-title">成績管理</h5>
+    <!-- List group with Links and buttons -->
+    <div class="list-group">
+      {% for test in tests %}
+        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" data-test-id="{{ test.id }}" data-bs-toggle="modal" data-bs-target="#testResultModal">
+          {{ test.test_name }}
+        </a>
+      {% endfor %}
+    </div><!-- End List group with Links and buttons -->
+</div>
+
+<!-- モーダル: テスト追加 -->
+<div class="modal fade" id="addTestResultModal" tabindex="-1" aria-labelledby="addTestResultModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addTestResultModalLabel">テスト追加</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% if student_id %}{% url 'student_detail' student_id %}{% else %}{% url 'studentHome' %}{% endif %}">
+          {% csrf_token %}
+          {{ test_result_form.as_p }}
+          <button type="submit" class="btn btn-primary">追加</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- モーダル: テスト結果表示 -->
+<div class="modal fade" id="testResultModal" tabindex="-1" aria-labelledby="testResultModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="testResultModalLabel">テスト結果</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="testResultModalBody">
+        <p>テスト結果がありません。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('.list-group-item-action');
+    links.forEach(link => {
+      link.addEventListener('click', function(event) {
+        event.preventDefault();
+        const testId = this.getAttribute('data-test-id');
+        const studentId = {{ student_id|default:"null" }};  // student_idをテンプレートから取得
+
+        let url;
+        if (studentId !== null) {
+            url = `/テスト結果/${testId}/${studentId}/`;
+        } else {
+            url = `/テスト結果/${testId}/`;
+        }
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            const modalBody = document.getElementById('testResultModalBody');
+            modalBody.innerHTML = '';
+            if (data.grades.length > 0) {
+              data.grades.forEach(grade => {
+                const gradeElement = document.createElement('div');
+                gradeElement.innerHTML = `<h5>${grade.tst}</h5><h5>${grade.score}点　${grade.rank}位</h5>`;
+                modalBody.appendChild(gradeElement);
+              });
+            } else {
+              modalBody.innerHTML = '<p>テスト結果がありません。</p>';
+            }
+            const testResultModal = new bootstrap.Modal(document.getElementById('testResultModal'));
+            testResultModal.show();
+          });
+      });
+    });
+  });
+</script>

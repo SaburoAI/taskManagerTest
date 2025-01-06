@@ -1,0 +1,118 @@
+<div class="col-12">
+  <div class="card">
+    <div class="filter">
+      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bx bx-plus"></i></a>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+        <li class="dropdown-header text-start">
+          <h6>メニュー</h6>
+        </li>
+
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#createCurriculumModal">カリキュラム作成</a></li>
+      
+    </div>
+
+    <div class="card-body">
+
+      <h5 class="card-title">カリキュラム一覧</h5>
+
+  <!-- List group with Links and buttons -->
+                <div class="list-group">
+                  {% for curriculum in curriculums %}
+                  <button type="button" class="list-group-item list-group-item-action">
+                    <a href="{% url 'curriculum_home' curriculum.curr_name %}  ">
+                      {{curriculum.curr_name}}
+                    </a>
+                  </button>
+                  {% endfor %}
+                </div>
+<!-- End List group with Links and buttons -->
+
+    </div>
+
+  </div>
+</div>
+
+<!-- カリキュラム作成モーダル -->
+<div class="modal fade" id="createCurriculumModal" tabindex="-1" aria-labelledby="createCurriculumModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="createCurriculumModalLabel">カリキュラム作成</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createCurriculumForm" method="post" action="{% url 'create_curriculum' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="curriculumName" class="form-label">カリキュラム名</label>
+            <input type="text" class="form-control" id="curriculumName" name="curr_name" required>
+          </div>
+          <div id="subjectsContainer">
+            <div class="mb-3">
+              <label for="subject1" class="form-label">教科選択</label>
+              <select class="form-select" id="subject1" name="subjects">
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.sub_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="subject2" class="form-label">教科選択</label>
+              <select class="form-select" id="subject2" name="subjects">
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.sub_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="subject3" class="form-label">教科選択</label>
+              <select class="form-select" id="subject3" name="subjects">
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}">{{ subject.sub_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary" id="addSubjectButton">教科を追加</button>
+          <button type="button" class="btn btn-secondary" id="removeSubjectButton">教科を消去</button>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+            <button type="submit" class="btn btn-primary">作成</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    let subjectCount = 3;
+    const subjectsContainer = document.getElementById('subjectsContainer');
+    const addSubjectButton = document.getElementById('addSubjectButton');
+    const removeSubjectButton = document.getElementById('removeSubjectButton');
+
+    addSubjectButton.addEventListener('click', function () {
+      subjectCount++;
+      const newSubjectDiv = document.createElement('div');
+      newSubjectDiv.classList.add('mb-3');
+      newSubjectDiv.innerHTML = `
+        <label for="subject${subjectCount}" class="form-label">教科選択</label>
+        <select class="form-select" id="subject${subjectCount}" name="subjects">
+          {% for subject in subjects %}
+          <option value="{{ subject.id }}">{{ subject.sub_name }}</option>
+          {% endfor %}
+        </select>
+      `;
+      subjectsContainer.appendChild(newSubjectDiv);
+    });
+
+    removeSubjectButton.addEventListener('click', function () {
+      if (subjectCount > 1) {
+        subjectsContainer.removeChild(subjectsContainer.lastElementChild);
+        subjectCount--;
+      }
+    });
+  });
+</script>

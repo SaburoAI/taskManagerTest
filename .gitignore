@@ -1,0 +1,13 @@
+# Django specific
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media
+
+# If you are using macOS:
+.DS_Store
+
+# If you are using Windows:
+Thumbs.db

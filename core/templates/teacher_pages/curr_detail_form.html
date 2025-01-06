@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}タスク追加{% endblock %}
+{% block main %}
+<main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>タスク追加</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'teacherHome' %}">トップ</a></li>
+          <li class="breadcrumb-item active">タスク追加</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">タスク追加フォーム</h5>
+              <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <div class="mb-3">
+                  <label for="bulk-tasks" class="form-label">タスク一括追加</label>
+                  <textarea id="bulk-tasks" name="multiple_tasks" class="form-control" rows="5" placeholder="タスクを改行で区切って入力してください"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">追加</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+</main>
+{% endblock %}

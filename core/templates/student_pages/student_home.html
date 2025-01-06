@@ -1,0 +1,53 @@
+{% extends "base.html"%}
+{% load static %}
+{% block title %}トップページ{% endblock %}
+
+{% block main %}
+<main id="main" class="main">
+
+
+    <div class="pagetitle">
+      <h1>おかえりなさい！{{user_name}}さん</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'studentHome' %}">トップ</a></li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section dashboard">
+      <div class="row">
+
+        <!-- Left side columns -->
+        <div class="col-lg-8">
+          <div class="row">
+
+
+              {% include 'student_pages/components/_carriculumview.html'%}
+              {% include 'student_pages/components/_todo.html'%}
+              {% include 'student_pages/components/_reports.html'%}
+
+
+
+          </div>
+        </div><!-- End Left side columns -->
+
+        <!-- Right side columns -->
+        <div class="col-lg-4">
+
+
+            {% include 'student_pages/components/_goalchart.html'%}
+            {% include 'student_pages/components/_review.html'%}
+            {% include 'student_pages/components/_score.html'%}
+
+        </div><!-- End Right side columns -->
+
+      </div>
+    </section>
+</main>
+
+{% endblock %}
+
+</body>
+
+</html>

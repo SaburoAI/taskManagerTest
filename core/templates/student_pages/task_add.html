@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>タスク追加</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-form {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .table-form th, .table-form td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        .table-form th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>タスク追加</h1>
+    <form method="post">
+        {% csrf_token %}
+        <table class="table-form">
+            <thead>
+                <tr>
+                    <th>タグ</th>
+                    <th>タスク名</th>
+                    <th>ステータス</th>
+                    <th>重要度</th>
+                    <th>難易度</th>
+                    <th>期限</th>
+                    <th>初回チェック日</th>
+                    <th>第1回復習日</th>
+                    <th>第2回復習日</th>
+                    <th>第3回復習日</th>
+                    <th>第4回復習日</th>
+                    <th>第5回復習日</th>
+                    <th>第6回復習日</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="task-rows">
+                <tr class="task-row">
+                    <td>{{ form.tag }}</td>
+                    <td>{{ form.task_id }}</td>
+                    <td>{{ form.status }}</td>
+                    <td>{{ form.grade }}</td>
+                    <td>{{ form.priority }}</td>
+                    <td>{{ form.deadline }}</td>
+                    <td>{{ form.number_1stchk }}</td>
+                    <td>{{ form.number_1streview }}</td>
+                    <td>{{ form.number_2ndchk }}</td>
+                    <td>{{ form.number_3rdchk }}</td>
+                    <td>{{ form.number_4thchk }}</td>
+                    <td>{{ form.number_5thchk }}</td>
+                    <td>{{ form.number_6thchk }}</td>
+                    <td><button type="button" class="btn btn-danger remove-row">削除</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-secondary mt-3" id="add-row">行を追加</button>
+        <button type="submit" class="btn btn-primary mt-3">追加</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('add-row').addEventListener('click', function() {
+        var table = document.getElementById('task-rows');
+        var newRow = table.rows[0].cloneNode(true);
+        var inputs = newRow.getElementsByTagName('input');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].value = '';
+        }
+        table.appendChild(newRow);
+    });
+
+    document.getElementById('task-rows').addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('remove-row')) {
+            var row = e.target.closest('tr');
+            if (document.querySelectorAll('.task-row').length > 1) {
+                row.remove();
+            }
+        }
+    });
+</script>
+</body>
+</html>

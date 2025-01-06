@@ -1,0 +1,87 @@
+{% extends "base.html"%}
+{% load static %}
+{% block title %}ライブラリー{% endblock %}
+
+{% block main %}
+
+<main id="main" class="main">
+  <div class="pagetitle">
+      
+    <h1>ライブラリー</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'teacherHome' %}">トップ</a>/<a href="">ライブラリー</a></li>
+      </ol>
+    </nav>
+  </div>
+
+  <section class="section">
+    <div class="row">
+      <div class="col-lg-12">
+
+      
+        <div class="card">
+          <div class="card-body">
+            <h6 class="card-title"></h6>
+            <!-- Bordered Tabs -->
+            <ul class="nav nav-tabs nav-tabs-bordered" id="borderedTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#bordered-curr" type="button" role="tab" aria-controls="home" aria-selected="true">カリキュラム</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#bordered-test" type="button" role="tab" aria-controls="profile" aria-selected="false">テスト（開発中）</button>
+              </li>
+
+            </ul>
+            <div class="tab-content pt-2" id="borderedTabContent">
+              <div class="tab-pane fade show active" id="bordered-curr" role="tabpanel" aria-labelledby="home-tab">
+                <div class="card-body">
+                  <h5 class="card-title"></h5>
+    
+                  <!-- List group with Advanced Contents -->
+                  <div class="list-group">
+                    {% if account.u_auth != 0 and account.u_auth != -1 %}
+                    {% for curriculum in curriculums %}
+                    <a href="{% url 'curriculum_home' curriculum.curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{curriculum.curr_name}}</h5>
+                        <small></small>
+                      </div>
+                  
+                    </a>
+                    {% endfor %}
+                    {% else %}
+                    <a href="{% url 'curriculum_home' curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{curr_name}}</h5>
+                        <small></small>
+                      </div>
+                  
+                    </a>
+                    {% endif %}
+                  </div><!-- End List group Advanced Content -->
+                 
+                </div>
+                
+              </div>
+              
+              <div class="tab-pane fade" id="bordered-test" role="tabpanel" aria-labelledby="profile-tab">
+                現在開発中です
+              </div>
+             
+            </div><!-- End Bordered Tabs -->
+
+          </div>
+        </div>
+
+
+      </div>
+
+
+
+    </div>
+  </section>
+
+</main>
+
+{% endblock %}

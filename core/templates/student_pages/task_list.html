@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}タスク一覧{% endblock %}
+
+{% block main %}
+<main id="main" class="main">
+
+    <div class="pagetitle">
+      <h1>タスク一覧</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'teacherHome' %}">トップ</a></li>
+          <li class="breadcrumb-item active">タスク一覧</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title">タスク一覧</h5>
+                <!-- タスク追加ボタンを右上に配置 -->
+                <a id="add-task-button" href="" class="btn btn-primary">タスク追加</a>
+              </div>
+              
+              <!-- 教科選択ドロップダウンリスト -->
+              <div class="form-group">
+                <label for="subject-select">教科を選択:</label>
+                <select id="subject-select" class="form-control">
+                  <option value="">すべての教科</option>
+                  {% for sub_id, tasks in tasks_by_sub.items %}
+                  <option value="{{ sub_id }}">{{ sub_id }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              
+              <!-- タスクテーブル -->
+              <div id="task-tables">
+                {% for sub_id, tasks in tasks_by_sub.items %}
+                <div class="task-table" data-sub-id="{{ sub_id }}">
+                  <h6>{{ sub_id }}</h6>
+                  <div class="table-responsive">
+                    <table class="table table-bordered">
+                      <thead>
+                          <tr>
+                              <th>ID</th>
+                              <th>タグ</th>
+                              <th>タスク名</th>
+                              <th>ステータス</th>
+                              <th>重要度</th>
+                              <th>難易度</th>
+                              <th>期限</th>
+                              <th>初回チェック日</th>
+                              <th>第1回復習日</th>
+                              <th>第2回復習日</th>
+                              <th>第3回復習日</th>
+                              <th>第4回復習日</th>
+                              <th>第5回復習日</th>
+                              <th>第6回復習日</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for task in tasks %}
+                          <tr>
+                              <td>{{ task.id }}</td>
+                              <td>{{ task.tag }}</td>
+                              <td>{{ task.task_id }}</td>
+                              <td>{{ task.get_status_display }}</td>
+                              <td>{{ task.get_grade_display }}</td>
+                              <td>{{ task.get_difficulty_display }}</td>
+                              <td>{{ task.deadline }}</td>
+                              <td>{{ task.firstCHK }}</td>
+                              <td>{{ task.firstReview }}</td>
+                              <td>{{ task.secondReview }}</td>
+                              <td>{{ task.thirdReview }}</td>
+                              <td>{{ task.fourthReview }}</td>
+                              <td>{{ task.fifthReview }}</td>
+                              <td>{{ task.sixthReview }}</td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+
+</main>
+
+<script>
+  document.getElementById('subject-select').addEventListener('change', function() {
+    var selectedSubId = this.value;
+    var taskTables = document.querySelectorAll('.task-table');
+
+    taskTables.forEach(function(table) {
+      if (selectedSubId === "" || table.getAttribute('data-sub-id') === selectedSubId) {
+        table.style.display = 'block';
+      } else {
+        table.style.display = 'none';
+      }
+    });
+  });
+
+  document.querySelectorAll('.task-name').forEach(element => {
+    element.addEventListener('blur', function() {
+      const taskId = this.getAttribute('data-task-id');
+      const fieldValue = this.innerText;
+      updateTask(taskId, { task_name: fieldValue });
+    });
+  });
+
+  function updateTask(taskId, data) {
+    fetch(`/api/tasks/${taskId}/`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+</script>
+
+{% endblock %}

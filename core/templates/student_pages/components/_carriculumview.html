@@ -1,0 +1,134 @@
+  <!-- Website Traffic -->
+  <div class="col-12">
+    <div class="card">
+
+
+      <div class="filter">
+        <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+        
+         <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+          <li class="dropdown-header text-start">
+            <h6>Filter</h6>
+          </li>
+    
+          <li><a class="dropdown-item" onclick="updateReportTitle('今日')">今日</a></li>
+          <li><a class="dropdown-item" onclick="updateReportTitle('今週')">今週</a></li>
+          <li><a class="dropdown-item" onclick="updateReportTitle('今月')">今月</a></li>
+          <li><a class="dropdown-item" onclick="updateReportTitle('今年')">今年</a></li>
+        </ul> 
+      </div>
+    
+
+
+
+        <div class="card-body pb-0">
+          <h5 class="card-title">選択カリキュラム：{{school_types}}合格ルート<span id="report-span">| 今日</span></h5>
+          <div class="row">
+            <div class = "col-6 text-center">
+                <div class = "col-12">
+                  <div id="trafficChart" style="min-height: 400px;" class="echart"></div>
+                </div>
+            </div>
+
+            <div class="col-6">
+              <div class = "parent-container">
+                <div class = "col-6-btn">
+                  <div class="row">
+
+                    {% for subject in subjectInfo %}
+                    <button type="button" class="btn btn-success mb-2">
+                        {{ subject.sub_name }}
+                      <span class="badge bg-white text-success">
+                        {{ subject.complete_task_count }}/{{ subject.task_count }}
+                      </span>
+                    </button>
+                    {% endfor %}
+
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+          </div>
+
+        </div>
+
+
+
+
+
+        <script>
+          document.addEventListener("DOMContentLoaded", () => {
+            const subjects = [];
+            const completedTasks = [];
+            let totalIncompleteTasks = {{ total_undone_tasks }};
+        
+            {% for subject in subjectInfo %}
+            subjects.push("{{ subject.sub_name }}");
+            completedTasks.push({{ subject.complete_task_count }});
+            {% endfor %}
+        
+            const colorMap = {
+              "国語": "#FF33A1",
+              "数学": "#0000ff",
+              "理科": "#33FF57",
+              "社会": "#ffd700",
+              "英語": "#FF8C33",
+              "その他": "#000000",// その他の教科用のデフォルトカラー
+              "未達成": "#808080" ,
+
+            };
+        
+            const chart = echarts.init(document.querySelector("#trafficChart"));
+            const option = {
+              tooltip: {
+                trigger: 'item'
+              },
+              legend: {
+                top: '5%',
+                left: 'center'
+              },
+              series: [{
+                name: 'タスク数',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                label: {
+                  show: false,
+                  position: 'center'
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: '18',
+                    fontWeight: 'bold'
+                  }
+                },
+                labelLine: {
+                  show: false
+                },
+                itemStyle: {
+                  color: function(params) {
+                    const subjectName = params.name;
+                    return colorMap[subjectName] || colorMap["その他"];
+                  }
+                },
+                data: subjects.map((subject, index) => ({
+                  value: completedTasks[index],
+                  name: subject 
+                })).concat({
+                  value: totalIncompleteTasks,
+                  name: '未達成'
+                })
+              }]
+            };
+            chart.setOption(option);
+            window.addEventListener('resize', chart.resize);
+          });
+        </script>
+
+      </div>
+ </div>
+
+  <!-- End Website Traffic -->

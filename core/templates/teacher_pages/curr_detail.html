@@ -1,0 +1,305 @@
+{% extends "base.html"%}
+{% load static %}
+{% block title %}カリキュラム編集{% endblock %}
+{% block main %}
+<main id="main" class="main">
+    <div class="pagetitle">
+      <h1>カリキュラム編集</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'teacherHome' %}">トップ</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'library' %}">ライブラリー</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'curriculum_home' curriculum_name %}">{{ curriculum_name }}</a></li>
+          <li class="breadcrumb-item active"><a href="">編集</a></li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-2">
+          <div class="row">
+            <ul class="sidebar-nav" id="sidebar-nav">
+              <li class="nav-item">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  教科選択
+                </a>
+                <ul class="dropdown-menu">
+                  {% for subject in subjects %}
+                  <li><a class="dropdown-item" href="#" onclick="showTasks('{{ subject }}')">{{ subject }}</a></li>
+                  {% endfor %}
+                </ul>
+                <ul id="components-nav" class="nav-content">
+                  <!-- 教科リストがここに表示されます -->
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+
+        <!-- End Left side columns -->
+
+
+        <!-- Right side columns -->
+        <div class="col-lg-10">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title" id="task-title">タスク一覧</h5>
+                <!-- タスク追加ボタンを右上に配置 -->
+                <div class="button-container">
+                <button id="add-task-button" class="btn btn-primary">タスク追加</button>
+                <button id="bulk-add-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkAddModal">一括追加</button>
+                <button id="save-tasks-button" class="btn btn-primary">保存</button>
+                </div>
+              </div>
+             
+              <table class="table table-bordered" id="task-table">
+                <thead>
+                  <tr>
+                    <th class="task-name">タスク</th>
+                    <th class="checkbox-column">科目タグ</th>
+                    <th class="delete-column">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- タスク一覧がここに表示されます -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div><!-- End Right side columns -->
+      </div>
+
+
+<!-- Bulk Add Modal -->
+<div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="bulkAddModalLabel">タスク一括追加</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="bulk-add-textarea" class="form-control" rows="10" placeholder="タスク名を改行で区切って入力してください"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+        <button type="button" id="bulk-add-confirm" class="btn btn-primary">追加</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    </section>
+  </main>
+
+
+  <style>
+    .selected {
+      background-color: #d3d3d3;
+    }
+  </style>
+
+
+  <script>
+    const subjects = {{ subjects|safe }};
+    const tasks = {{ tasks|safe }};
+    let currentSubject = '';
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (subjects.length > 0) {
+        showTasks(subjects[0]);
+      }
+    });
+   
+
+
+    function showTasks(subject) {
+      currentSubject = subject;
+      const taskTableBody = document.getElementById('task-table').getElementsByTagName('tbody')[0];
+      const taskTitle = document.getElementById('task-title');
+      taskTableBody.innerHTML = '';
+      taskTitle.innerText = subject;
+   
+      if (tasks[subject]) {
+        tasks[subject].forEach(task => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+        <td contenteditable="true" class="task-name-column" data-task-id="${task.id}">${task.task_name}</td>
+        <td class="checkbox-column">
+          <input type="checkbox" class="task-enable" data-task-id="${task.id}" ${task.task_enable === 'true' ? 'checked' : ''}>
+        </td>
+        <td class="delete-column">
+          <button class="btn btn-danger" onclick="deleteTask(${task.id})">削除</button>
+        </td>
+          `;
+
+
+          taskTableBody.appendChild(row);
+        });
+      } else {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="4">タスクがありません</td>';
+        taskTableBody.appendChild(row);
+      }
+    }
+ 
+    function updateTask(taskId, data) {
+      fetch(`/task_edit/${taskId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Response data:', data); // レスポンスデータをコンソールに出力
+        if (data.success) {
+          console.log('Success:', data.message);
+          location.reload();
+        } else {
+          console.error('Error:', data.errors);
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+ 
+    function addTask(data) {
+      console.log('Add Task:', data);
+      fetch(`/new_task_add/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Response data:', data); // レスポンスデータをコンソールに出力
+        if (data.success) {
+          console.log('Success:', data.message);
+          location.reload();
+        } else {
+          console.error('Error:', data.errors);
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+    }
+ 
+    function saveTasks() {
+      const taskElements = Array.from(document.querySelectorAll('.task-name-column'));
+      taskElements.forEach((element, index) => {
+        const taskId = element.getAttribute('data-task-id');
+        const taskName = element.innerText;
+        const taskEnableElement = document.querySelector(`.task-enable[data-task-id="${taskId}"]`);
+        const taskEnable = taskEnableElement ? taskEnableElement.checked : false;
+        if (taskName.trim() === '') {
+          console.error('Error: タスク名は必須です。');
+          return;
+        }
+        console.log('Task ID:', taskId , 'Task Name:', taskName, 'Task Enable:', taskEnable);
+        if (taskId === 'new') {
+          addTask({ task_name: taskName, task_enable: taskEnable, curriculum_name: "{{ curriculum_name }}", subject_name: currentSubject, order: index + 1 });
+        } else {
+          updateTask(taskId, { task_name: taskName, task_enable: taskEnable, order: index + 1 });
+        }
+      });
+    }
+ 
+    // ページロード時に最初の教科のタスクを表示
+    document.addEventListener('DOMContentLoaded', function() {
+      if (subjects.length > 0) {
+        showTasks(subjects[0]);
+      }
+    });
+ 
+    // 保存ボタンのクリックイベントを設定
+    document.getElementById('save-tasks-button').addEventListener('click', saveTasks);
+    document.getElementById('add-task-button').addEventListener('click', function() {
+      const taskTableBody = document.getElementById('task-table').getElementsByTagName('tbody')[0];
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td contenteditable="true" class="task-name-column" data-task-id="new">新しいタスク</td>
+        <td class="checkbox-column">
+          <input type="checkbox" class="task-enable" data-task-id="new">
+        </td>
+        <td class="delete-column">
+          <button class="btn btn-danger" onclick="deleteTask('new')">削除</button>
+        </td>
+      `;
+      taskTableBody.appendChild(newRow);
+    });
+
+
+//モーダルからタスクを一括追加
+document.getElementById('bulk-add-confirm').addEventListener('click', function() {
+  const taskTableBody = document.querySelector('#task-table tbody');
+  const taskTextarea = document.getElementById('bulk-add-textarea');
+  const tasks = taskTextarea.value.split('\n');
+
+
+  tasks.forEach(taskName => {
+    if (taskName.trim() !== '') {
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td contenteditable="true" class="task-name-column" data-task-id="new">${taskName.trim()}</td>
+        <td>
+          <input type="checkbox" class="task-enable" data-task-id="new">
+        </td>
+        <td class="delete-column">
+          <button class="btn btn-danger" onclick="deleteTask('new')">削除</button>
+        </td>
+      `;
+      taskTableBody.appendChild(newRow);
+    }
+  });
+
+
+  // モーダルを閉じる
+  const bulkAddModalElement = document.getElementById('bulkAddModal');
+  const bulkAddModal = bootstrap.Modal.getInstance(bulkAddModalElement);
+  bulkAddModal.hide();
+
+
+  // テキストエリアをクリア
+  taskTextarea.value = '';
+});
+
+
+//タスクの削除機能
+function deleteTask(taskId) {
+  fetch(`/task_delete/${taskId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Task deleted successfully.');
+      location.reload();
+    } else {
+      console.error('Error deleting task:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+}
+  </script>
+{% endblock %}
+

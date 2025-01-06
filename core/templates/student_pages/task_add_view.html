@@ -1,0 +1,170 @@
+{% extends "base.html"%}
+{% load static %}
+{% block title %}タスク追加画面{% endblock %}
+
+
+
+{% block main %}
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>タスク追加</h1>
+  </div>
+  <section class="section dashboard">
+    <div class="row">
+      <!-- Left side columns -->
+      <div class="col-lg-2">
+        <div class="row">
+          <ul class="sidebar-nav" id="sidebar-nav">
+            <a class="nav-link collapsed" data-bs-target="#components-nav" data-bs-toggle="collapse" href="#">
+              <i class="bi bi-menu-button-wide"></i><span>教科</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="components-nav" class="nav-content collapse show" data-bs-parent="#sidebar-nav">
+              <li>
+                {% for subject, curriculum in subject_curriculum_pairs %}
+                <a href="?curriculum_id={{ curriculum.id }}">
+                  <i class="bi bi-circle"></i><span>{{ subject }}</span>
+                </a>
+                {% endfor %}
+              </li>
+            </ul>
+          </ul>
+        </div>
+      </div><!-- End Left side columns -->
+
+      <!-- Right side columns -->
+      <div class="col-lg-10">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">タスク一覧</h5>
+            <!-- Default Accordion -->
+            <div class="accordion" id="accordionPanelsStayOpenExample">
+              {% for tag, task_details in tasks_by_tag.items %}
+              <div class="accordion-item">
+                <h2 class="accordion-header d-flex align-items-center">
+                  <button class="accordion-button flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#tag-{{ tag }}" aria-expanded="true" aria-controls="tag-{{ tag }}">
+                    {{ tag }}
+                  </button>
+                  <button type="button" class="btn btn-outline-success ms-2 update-task-button" data-task-id="{{ detail.task_id }}" data-sub-id="{{ detail.sub_id }}">
+                    追加
+                  </button>
+                </h2>
+                <div id="tag-{{ tag }}" class="accordion-collapse collapse show">
+                  <div class="accordion-body">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th class="detail-id">管理用ID</th>
+                          <th>タスク名</th>
+                          <th>ステータス</th>
+                          <th>優先度</th>
+                          <th>重要度</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {% for detail in task_details %}
+                        <tr>
+                          <td class="detail-id">{{ detail.id }}</td>
+                          <td>{{ detail.task_name }}</td>
+                          <td id ="taskStatus">{{ detail.status }}</td>
+                          <td>{{ detail.priority }}</td>
+                          <td>{{ detail.grade }}</td>
+                          <td style="display: none;">{{ detail.task_id }}</td> <!-- TblTaskのIDを追加 -->
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div><!-- End Right side columns -->
+    </div>
+  </section>
+</main>
+
+<!-- タスク更新モーダル -->
+<div class="modal fade" id="updateTaskModal" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="updateTaskModalLabel">タスク更新</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="updateTaskForm">
+          <input type="hidden" id="taskStatus" value="2"> <!-- ステータスを自動で2に設定 -->
+          <div class="mb-3">
+            <label for="taskDeadline" class="form-label">期限</label>
+            <input type="date" class="form-control" id="taskDeadline">
+          </div>
+          <button type="submit" class="btn btn-primary">更新</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const updateTaskButtons = document.querySelectorAll('.update-task-button');
+    const updateTaskModal = new bootstrap.Modal(document.getElementById('updateTaskModal'));
+    const updateTaskForm = document.getElementById('updateTaskForm');
+    let currentTaskId, currentSubId;
+
+    updateTaskButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentTaskId = button.getAttribute('data-task-id');
+            currentSubId = button.getAttribute('data-sub-id');
+            updateTaskModal.show();
+        });
+    });
+
+    updateTaskForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const deadline = document.getElementById('taskDeadline').value;
+  
+      const manageIds = Array.from(document.querySelectorAll('.detail-id'))
+          .map(td => parseInt(td.textContent, 10))
+          .filter(id => !isNaN(id));  // NaNを除外
+  
+      fetch(`/update-task-status/`, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+              deadline: deadline,
+              manage_id: manageIds
+          })
+      })
+      .then(response => {
+          if (!response.ok) {
+              return response.text().then(text => { throw new Error(text); });
+          }
+          return response.json();
+      })
+      .then(data => {
+          if (data.status === 'success') {
+              alert('タスクが更新されました');
+              location.reload();  // ページをリロード
+          } else {
+              alert('エラーが発生しました: ' + data.message);
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('エラーが発生しました: ' + error.message);
+      });
+  });
+});
+</script>
+{% endblock %}
+</body>
+</html>

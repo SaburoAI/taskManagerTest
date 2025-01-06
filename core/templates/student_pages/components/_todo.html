@@ -1,0 +1,80 @@
+<!-- Recent Sales -->
+<div class="col-12">
+  <div class="card recent-sales overflow-auto">
+    <div class="filter">
+      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+      
+       <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+        <li class="dropdown-header text-start">
+          <h6>メニュー</h6>
+        </li>
+  
+        <li><a class="dropdown-item" href = "{% url 'task_add' %}">タスク追加</a></li>
+
+
+      </ul> 
+    </div>
+  
+
+    <div class="card-body">
+      <h5 class="card-title">やるべきこと<span>| 今日</span></h5>
+
+      <table class="table datatable ">
+        <thead>
+            <tr>
+                <th scope="col">教科</th>
+                <th scope="col">タスク</th>
+                <th scope="col">期限</th>
+                <th scope="col">ステータス</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in task_list %}
+            <tr>
+                <td>{{ task.sub_name }}</td>
+                <td>
+                  {% if student_id %}
+                    <a href="{% url 'update_task_status_with_student' task.id student_id %}" class="text-primary" onclick="return confirmUpdate();">{{ task.task_name }}</a>
+                  {% else %}
+                    <a href="{% url 'update_task_status' task.id %}" class="text-primary" onclick="return confirmUpdate();">{{ task.task_name }}</a>
+                  {% endif %}
+                </td>
+                
+                <td>
+                  {% if task.deadline and task.deadline < now %}
+                  <span class="text-danger">{{ task.deadline }}</span>
+                  {% else %}
+                  {{ task.deadline }}
+                  {% endif %}
+                </td>
+                <td>
+                  {% if task.deadline < now|date:"Y/m/d"%}
+                  <span class="badge bg-danger">最優先</span>
+                  {% elif task.status == 1 %}
+                  <span class="badge bg-info">実行中</span>
+                  {% else %}
+                  <span class="badge bg-danger">不明</span>
+                  {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    </div>
+
+  </div>
+</div>
+<!-- End Recent Sales -->
+
+<script type="text/javascript">
+  function confirmUpdate() {
+      return confirm('タスクのステータスを更新しますか？');
+  }
+</script>
+
+<style>
+  .dataTable-input {
+    display: none;
+  }
+</style>

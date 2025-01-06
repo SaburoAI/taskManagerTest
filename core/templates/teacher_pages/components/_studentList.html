@@ -1,0 +1,40 @@
+            <div class="col-12">
+                <div class="card recent-sales overflow-auto">
+                  <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bx bx-plus"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                      <li class="dropdown-header text-start">
+                        <h6>メニュー</h6>
+                      </li>
+            
+                      <li><a href= "" class="dropdown-item" >カリキュラム割り当て</a></li>
+                    
+                  </div>
+
+
+
+                  <div class="card-body">
+                    <h5 class="card-title">生徒一覧</h5>
+
+                    <table class="table table-striped table-hover">
+                      <tr>
+                        <th>生徒名</th>
+                        <th>選択カリキュラム</th>
+                        <th>達成率</th>
+                      </tr>
+                      {% for student in student_data %}
+                      <tr>
+                          <td><a href="{% url 'student_detail' student.u_id %}">
+                            {{ student.u_name }}</a></td>
+                          
+                          <td>{{ student.school_type }}</td>
+                          <td>{{ student.curr_info.achievement_rate }}%</td>
+                      </tr>
+                      {% endfor %}
+                    </table>
+
+                  </div>
+
+                </div>
+              </div>
+

@@ -1,0 +1,169 @@
+<!-- Reports -->
+<div class="col-12">
+    <div class="card">
+        <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+                
+                <li><a class="dropdown-item" onclick="updateReport('過去１週間', 7)">過去１週間</a></li>
+                <li><a class="dropdown-item" onclick="updateReport('過去１ヶ月', 30)">過去１ヶ月</a></li>
+                <li><a class="dropdown-item" onclick="updateReport('過去半年', 180)">過去半年</a></li>
+                <li><a class="dropdown-item" onclick="updateReport('過去一年', 365)">過去一年</a></li>
+                
+              </ul>
+          </div>
+        
+        <div class="card-body">
+            <h5 class="card-title">これまでの勉強記録<span id="report-title">| 今日</span></h5>
+        </div>
+  
+        <!-- Line Chart -->
+        <div id="reportsChart"></div>
+
+        <script>
+            let chart;
+        
+            function updateReportTitle(value) {
+                document.getElementById('report-title').textContent = '|' + value;
+            }
+        
+            function generateRandomData(length) {
+                return Array.from({ length }, () => Math.floor(Math.random() * 8));
+            }
+        
+            function updateReport(title, days) {
+                updateReportTitle(title);
+        
+                const studentId = {{ student_id|default:"null" }};  // student_idをテンプレートから取得
+        
+                let url;
+                if (studentId !== null) {
+                    url = `/生徒画面/${studentId}/update_report_data/?days=${days}`;
+                } else {
+                    url = `/update_report_data/?days=${days}`;
+                }
+        
+                // Ajaxリクエストを送信してデータを取得
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        const categories = [];
+                        const chartData = [];
+                        const randomData = generateRandomData(days+1);
+                        const today = new Date();
+                        let startDate = new Date();
+                        if (days > 0) {
+                            startDate.setDate(today.getDate() - days);
+                        } else {
+                            startDate = new Date(2000, 0, 1); // 全期間の場合、適当な過去の日付を設定
+                        }
+        
+                        if (days >= 180) {
+                            // 月ごとに集計
+                            const monthlyData = {};
+                            for (let d = startDate; d <= today; d.setMonth(d.getMonth() + 1)) {
+                                const monthStr = `${d.getFullYear()}/${('0' + (d.getMonth() + 1)).slice(-2)}`;
+                                categories.push(monthStr);
+                                monthlyData[monthStr] = 0;
+                            }
+                            for (const dateStr in data) {
+                                const date = new Date(dateStr);
+                                const monthStr = `${date.getFullYear()}/${('0' + (date.getMonth() + 1)).slice(-2)}`;
+                                if (monthlyData[monthStr] !== undefined) {
+                                    monthlyData[monthStr] += data[dateStr];
+                                }
+                            }
+                            for (const monthStr in monthlyData) {
+                                chartData.push(monthlyData[monthStr]);
+                            }
+                        } else {
+                            // 日ごとに集計
+                            for (let d = startDate; d <= today; d.setDate(d.getDate() + 1)) {
+                                const dateStr = d.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+                                categories.push(dateStr);
+                                chartData.push(data[dateStr] || 0); // 取得したデータから値を設定
+                            }
+                        }
+        
+                        if (chart) {
+                            chart.destroy();  // 既存のグラフを破棄
+                        }
+        
+                        const xaxisOptions = {
+                            type: 'category',
+                            categories: categories
+                        };
+        
+                        if (days === 365) {
+                            xaxisOptions.tickAmount = 12;  // 1年ごとに表示
+                        }
+        
+                        chart = new ApexCharts(document.querySelector("#reportsChart"), {
+                            series: [{
+                                name: '完了タスク数',
+                                data: chartData
+                            }, {
+                                name: '目標ペース',
+                                data: randomData
+                            }],
+                            chart: {
+                                height: 350,
+                                type: 'area',
+                                toolbar: {
+                                    show: false
+                                },
+                            },
+                            markers: {
+                                size: 4
+                            },
+                            colors: ['#2eca6a', '#4154f1', '#ff771d'],
+                            fill: {
+                                type: "gradient",
+                                gradient: {
+                                    shadeIntensity: 1,
+                                    opacityFrom: 0.3,
+                                    opacityTo: 0.4,
+                                    stops: [0, 90, 100]
+                                }
+                            },
+                            dataLabels: {
+                                enabled: false
+                            },
+                            stroke: {
+                                curve: 'smooth',
+                                width: 2
+                            },
+                            xaxis: xaxisOptions,
+                            yaxis: {
+                                tickAmount: 5,  // 目盛りの数を設定
+                                min: 0,  // 最小値を設定
+                                labels: {
+                                    formatter: function (val) {
+                                        return Math.floor(val);  // 整数に変換
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                x: {
+                                    formatter: function (val, opts) {
+                                        return opts.w.globals.labels[opts.dataPointIndex];
+                                    }
+                                }
+                            }
+                        });
+        
+                        chart.render();
+                    });
+            }
+        
+            document.addEventListener("DOMContentLoaded", () => {
+                updateReport('過去１週間', 7); // 初期表示は過去一週間のデータ
+            });
+        </script>
+        <!-- End Line Chart -->
+    </div>
+</div>
+<!-- End Reports -->

@@ -1,0 +1,18 @@
+<div class="filter">
+    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+      <li class="dropdown-header text-start">
+        <h6>Filter</h6>
+      </li>
+
+      <li><a class="dropdown-item" onclick="updateReportTitle('今日')">今日</a></li>
+      <li><a class="dropdown-item" onclick="updateReportTitle('今週')">今週</a></li>
+      <li><a class="dropdown-item" onclick="updateReportTitle('今月')">今月</a></li>
+      <li><a class="dropdown-item" onclick="updateReportTitle('今年')">今年</a></li>
+  </div>
+
+  <script>
+    function updateReportTitle(value) {
+        document.getElementById('report-span').textContent = '|' + value;
+    }
+</script>

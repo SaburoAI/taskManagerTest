@@ -1,0 +1,47 @@
+<div class="card">
+  <div class="card-body">
+
+    <h5 class="card-title">復習リスト</h5>
+
+    {% for review in review_list %}
+      {% if review.review_date != '不明' and review.review_date < now|date:"Y/m/d" %}
+      
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>{{ review.sub_name }}: {{ review.task_name }} - 復習日: {{ review.review_date }}</strong> 
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"onclick="updateStatus({{ review.id }})"></button>
+      </div> 
+      
+      {% else %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{ review.sub_name }}: {{ review.task_name }}</strong> - 復習日: {{ review.review_date }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" onclick="updateStatus({{ review.id }})"></button>
+      </div>
+      {% endif %}
+      {% endfor %}
+
+  </div>
+</div>
+
+<script>
+  function updateStatus(taskId) {
+    fetch(`/update_status/${taskId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Status updated successfully');
+        } else {
+            console.error('Failed to update status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
