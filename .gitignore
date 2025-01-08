@@ -11,3 +11,10 @@ media
 
 # If you are using Windows:
 Thumbs.db
+
+# Python
+*.pyc
+__pycache__/
+
+# Virtual Environment
+venv/

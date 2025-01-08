@@ -57,11 +57,20 @@
       {% if request.session.school_id %}
 
       <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'subject_list'%}">
+          <i class="bi bi-card-list"></i>
+          <span>教科一覧</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'create_user'%}">
           <i class="bi bi-card-list"></i>
           <span>アカウント登録</span>
         </a>
       </li>
+
+
       {% endif %}
 
   

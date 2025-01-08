@@ -54,7 +54,7 @@ class TblUser(models.Model):
 
 class TblSubject(models.Model):
     id = models.SmallAutoField(primary_key=True)
-    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1)
+    s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
     sub_name = models.TextField()
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)

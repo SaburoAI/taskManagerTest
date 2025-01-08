@@ -440,6 +440,52 @@ def search_members(request):
         results = []
     return JsonResponse(list(results), safe=False)
 
+class SubjectHomeView(CustomLoginRequiredMixin, TemplateView):
+    template_name = "teacher_pages/subject_add_view.html"
+    
+    def get_context_data(self, **kwargs):
+        ctxt = super().get_context_data(**kwargs)
+        ctxt.update(get_account_info(self.request))
+        
+        if 'school_id' in self.request.session:
+            school_id = self.request.session.get('school_id')
+            ctxt['school_id'] = school_id
+            user_id = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+            ctxt['user'] = user_id
+            subjects = TblSubject.objects.filter(s=school_id).values('id', 'sub_name')
+            ctxt['subjects'] = subjects
+            return ctxt
+        elif 'user_id' in self.request.session:
+            return redirect('root')  # ルートにリダイレクト
+        else:
+            ctxt['error'] = 'No valid session data.'
+            return ctxt
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SaveSubjectsView(View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        subjects = data.get('subjects', [])
+        subject_ids = [subject['id'] for subject in subjects if subject['id'] != '-1']
+
+        # 送られてきていない教科を削除
+        TblSubject.objects.exclude(id__in=subject_ids).delete()
+
+        for subject in subjects:
+            school = TblSchoolid.objects.get(id=subject['s_id'])
+            if subject['id'] == '-1':
+                TblSubject.objects.create(
+                    s=school,
+                    sub_name=subject['sub_name']
+                )
+            else:
+                TblSubject.objects.filter(id=subject['id']).update(
+                    s=school,
+                    sub_name=subject['sub_name']
+                )
+
+        return JsonResponse({'status': 'success'})
+
 
 
 #講師側ビュー

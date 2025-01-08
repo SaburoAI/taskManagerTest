@@ -23,6 +23,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2z^$)5ef0vd&9u&6b5+v=6%0+ti+kv9i#0*9n3k!&u$i5piez@'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+'''
+DEBUG = False
+
+ALLOWED_HOSTS = ['basicSchool.pythonanywhere.com']
+
+'''
+
+
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -85,6 +94,19 @@ DATABASES = {
     }
 }
 
+'''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'basicSchool$default',
+        'USER': 'basicSchool',
+        'PASSWORD': 'basch2024',
+        'HOST': 'basicSchool.mysql.pythonanywhere-services.com',
+    }
+}
+'''
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -129,7 +151,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # プロジェクトの静的ファイルのディレクトリを指定
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),  # 静的ファイルが含まれるディレクトリを指定
+    os.path.join(BASE_DIR),  # 静的ファイルが含まれるディレクトリを指定
 ]
 
 # Default primary key field type
