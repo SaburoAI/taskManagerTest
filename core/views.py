@@ -164,7 +164,6 @@ class LibraryView(CustomLoginRequiredMixin, TemplateView):
             user_id = user_neme.u_id
             ctxt['user_id'] = user_id
             ctxt['user'] = user_neme
-            print(user_neme.u_id)
 
         elif 'user_id' in self.request.session:
             user_id = self.request.session.get('user_id')
@@ -184,7 +183,6 @@ class LibraryView(CustomLoginRequiredMixin, TemplateView):
         ctxt.update(get_curr_info(user_id))
         ctxt.update(get_teacher_home_context(school_id, user_id))
         ctxt.update(get_account_info(self.request))
-        print(ctxt)
         
 
 
@@ -204,12 +202,22 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
             school_id = self.request.session.get('school_id')
             user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
             user_id = user_neme.u_id
-            ctxt['user_id'] = user_id
+            
             ctxt['user'] = user_neme
+            ctxt['user_id'] = user_id
+            ctxt['school_id'] = school_id
 
         elif 'user_id' in self.request.session:
             user_id = self.request.session.get('user_id')
-            ctxt['user'] = user_id
+            user = TblUser.objects.get(u_id=user_id)
+            user_name = user.u_name
+            school = TblSchoolid.objects.get(id=user.s_id)
+            school_id = school.id
+            
+            ctxt['user'] = user.u_name
+            ctxt['user_id'] = user_id
+            print(school_id)
+            ctxt['school_id'] = school_id
             
             try:
                 user = TblUser.objects.get(u_id=user_id)
@@ -303,6 +311,7 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
         ctxt['all_users'] = all_users
         ctxt['subjects'] = subjects
         ctxt['tasks'] = tasks
+        print(account)
         return ctxt
 
 
@@ -311,7 +320,6 @@ class AddMemberToTaskView(View):
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
-            print(data)
             user_id = data.get('user_id')
             curriculum_name = data.get('curriculum_name')
             school_id = data.get('school_id')
@@ -335,7 +343,6 @@ class AddMemberToTaskView(View):
                         'priority': 0, # 初期優先度を設定
                         'deadline': deadline  # 期限を設定
                     }
-                    print(detail)
 
 
                     # 既存のタスクを更新するか、新しいタスクを作成する
@@ -360,7 +367,6 @@ class AddMemberToTaskView(View):
 def get_task_attributes(request):
     try:
         data = json.loads(request.body)
-        print(data)
         teacher_id = data.get('teacherId')
         curr = data.get('curr')
         sub_id = data.get('subid')
@@ -394,8 +400,7 @@ class SaveTasksView(View):
         try:
             data = json.loads(request.body)
             tasks = data.get('tasks', [])
-            print(tasks)
-            
+            print(data)
 
             # tasksにsub_idを追加して保存
             for task in tasks:
@@ -563,7 +568,6 @@ class TeacherTaskAddView(CustomLoginRequiredMixin, TemplateView):
         # URLから渡されたstudent_nameを取得
         student_name = self.kwargs.get('student_name')
         if not student_name:
-            print('Student name is not available.')
             return ctxt
 
         # student_nameを使用してTblUserから該当のu_idを取得
@@ -701,7 +705,6 @@ class StudentDetailView(CustomLoginRequiredMixin, TemplateView):
                 ctxt['student_id'] = student_id
             except TblUser.DoesNotExist:
                 ctxt['error'] = '指定されたユーザーは存在しません。'
-        print(ctxt)
 
             
         return ctxt
