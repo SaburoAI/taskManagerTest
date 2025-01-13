@@ -67,10 +67,15 @@ def get_account_info(request):
     
     if school_id:
         school = TblSchoolid.objects.get(id=school_id)
+        user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+        
         return {
-            "id": school.id,
+            "school_id": school.id,
             "s_id": school.s_id,
-            "s_name": school.s_id  
+            "s_name": school.s_id,
+            "u_id": user_neme.u_id,
+            "u_name": user_neme.u_name,
+            "u_auth": user_neme.u_auth
         }
     
     return {"error": "invalid session data"}
