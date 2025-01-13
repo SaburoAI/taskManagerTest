@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-2z^$)5ef0vd&9u&6b5+v=6%0+ti+kv9i#0*9n3k!&u$i5piez@'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# サーバー用設定（pythonanywhere.com）
 '''
 DEBUG = False
 
@@ -61,7 +61,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    #'taskManager.core.middleware.AutoLogoutMiddleware',
 ]
+
 
 ROOT_URLCONF = 'taskManager.urls'
 
@@ -93,6 +95,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+#サーバー用設定（pythonanywhere.com）
 
 '''
 DATABASES = {
@@ -165,3 +169,8 @@ LOGIN_URL='login'     # ログイン
 LOGOUT_URL='logout'   # ログアウト
 
 LOGOUT_REDIRECT_URL='login'
+
+# セッション設定
+SESSION_COOKIE_AGE = 1800  # 30分 (1800秒)
+SESSION_SAVE_EVERY_REQUEST = True  # 各リクエストごとにセッションを保存
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # ブラウザを閉じたときにセッションを終了

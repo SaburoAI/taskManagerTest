@@ -15,7 +15,7 @@
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
                     <a href="{% url 'teacherHome' %}">トップ/</a>
-                    <a href="{% url 'library' %}">ライブラリー/</a>
+                    <a href="{% url 'library' %}">ライブラリー/{{account.s_id}}</a>
                     <a href="{% url 'curriculum_home' curriculum_name %}" >{{curriculum_name}}</a>
                 </li>
             </ol>
@@ -470,36 +470,40 @@
             
                 function handleBulkAdd() {
                     const bulkAddTextarea = document.getElementById('bulk-add-textarea');
-                    const taskNames = bulkAddTextarea.value.split('\n').filter(taskName => taskName.trim() !== '');
+                    const taskLines = bulkAddTextarea.value.split('\n').filter(line => line.trim() !== '');
+                    console.log(taskLines);
             
-                    taskNames.forEach((taskName) => {
-                        const newRow = document.createElement('tr');
-                        newRow.innerHTML = `
-                            <td class="index-cell"></td>
-                            <td class="manage-id">-1</td>
-                            <td class="subject-cell">${subjectSelect.value}</td>
-                            <td class="tag-cell" contenteditable="true">未設定</td>
-                            <td class="task-name-cell" contenteditable="true">${taskName}</td>
-                            <td>
-                                <select class="form-select grade-select">
-                                    <option value="1">A</option>
-                                    <option value="2">B</option>
-                                    <option value="3">C</option>
-                                </select>
-                            </td>
-                            <td>
-                                <select class="form-select priority-select">
-                                    <option value="1">A</option>
-                                    <option value="2">B</option>
-                                    <option value="3">C</option>
-                                </select>
-                            </td>
-                            <td>
-                                <button class="btn btn-danger btn-sm delete-row">削除</button>
-                            </td>
-                        `;
-                        taskTableBody.appendChild(newRow);
-                    });
+                    taskLines.forEach((line) => {
+                      const [tag, taskName, priority, grade] = line.split('\t').map(item => item.trim());
+              
+                      const newRow = document.createElement('tr');
+                      newRow.innerHTML = `
+                          <td class="index-cell"></td>
+                          <td class="manage-id">-1</td>
+                          <td class="subject-cell">${subjectSelect.value}</td>
+                          <td class="tag-cell" contenteditable="true">${tag || '未設定'}</td>
+                          <td class="task-name-cell" contenteditable="true">${taskName}</td>
+                          <td>
+                              <select class="form-select grade-select">
+                                  <option value="1" ${grade === 'A' ? 'selected' : ''}>A</option>
+                                  <option value="2" ${grade === 'B' ? 'selected' : ''}>B</option>
+                                  <option value="3" ${grade === 'C' ? 'selected' : ''}>C</option>
+                              </select>
+                          </td>
+                          <td>
+                              <select class="form-select priority-select">
+                                  <option value="1" ${priority === 'A' ? 'selected' : ''}>A</option>
+                                  <option value="2" ${priority === 'B' ? 'selected' : ''}>B</option>
+                                  <option value="3" ${priority === 'C' ? 'selected' : ''}>C</option>
+                              </select>
+                          </td>
+                          <td>
+                              <button class="btn btn-danger btn-sm delete-row">削除</button>
+                          </td>
+                      `;
+                      taskTableBody.appendChild(newRow);
+                  });
+                 
             
                     // モーダルを閉じる
                     const bulkAddModal = document.getElementById('bulkAddModal');
@@ -520,8 +524,9 @@
             
                     rows.forEach(row => {
                         const task = {
-                            user_id: '{{ user }}',
-                            s_id: '{{ account.school_id }}',
+                            user_name: '{{ user }}',
+                            user_id: '{{ user_id }}',
+                            s_id: '{{ account.id }}',
                             curr_name: '{{ curriculum_name }}',
                             management_id: row.querySelector('.manage-id').innerText,
                             subject: row.querySelector('.subject-cell').innerText,
