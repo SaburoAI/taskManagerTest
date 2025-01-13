@@ -68,6 +68,7 @@ def get_account_info(request):
     if school_id:
         school = TblSchoolid.objects.get(id=school_id)
         return {
+            "id": school.id,
             "s_id": school.s_id,
             "s_name": school.s_id  
         }

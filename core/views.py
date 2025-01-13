@@ -158,11 +158,33 @@ class LibraryView(CustomLoginRequiredMixin, TemplateView):
     template_name = "library.html"
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
-        school_id = self.request.session.get('school_id')
-        user_id = self.request.session.get('user_id')
+        if 'school_id' in self.request.session:
+            school_id = self.request.session.get('school_id')
+            user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+            user_id = user_neme.u_id
+            ctxt['user_id'] = user_id
+            ctxt['user'] = user_neme
+            print(user_neme.u_id)
+
+        elif 'user_id' in self.request.session:
+            user_id = self.request.session.get('user_id')
+            ctxt['user'] = user_id
+            
+            try:
+                user = TblUser.objects.get(u_id=user_id)
+                school_id = user.s_id
+                
+            except TblUser.DoesNotExist:
+                ctxt['error'] = 'User ID does not exist.'
+                return ctxt
+            
+        else:
+            ctxt['error'] = 'No valid session data.'
+            return ctxt
         ctxt.update(get_curr_info(user_id))
         ctxt.update(get_teacher_home_context(school_id, user_id))
         ctxt.update(get_account_info(self.request))
+        print(ctxt)
         
 
 
@@ -180,13 +202,15 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
         # ログインしているユーザーがs_idかu_idかで分岐
         if 'school_id' in self.request.session:
             school_id = self.request.session.get('school_id')
-            user_id = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
-            ctxt['user'] = user_id
-
+            user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+            user_id = user_neme.u_id
+            ctxt['user_id'] = user_id
+            ctxt['user'] = user_neme
 
         elif 'user_id' in self.request.session:
             user_id = self.request.session.get('user_id')
             ctxt['user'] = user_id
+            
             try:
                 user = TblUser.objects.get(u_id=user_id)
                 school_id = user.s_id
@@ -194,6 +218,7 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
             except TblUser.DoesNotExist:
                 ctxt['error'] = 'User ID does not exist.'
                 return ctxt
+            
         else:
             ctxt['error'] = 'No valid session data.'
             return ctxt
@@ -228,8 +253,8 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
         first_teacher_id = None
         if teachers.exists():
             first_teacher_id = teachers.first().u_id
-            ctxt['user'] = first_teacher_id
-        ctxt['user'] = user_id
+            ctxt['model_user'] = first_teacher_id
+        
         
         curriculums = TblCurriculum.objects.filter(curr_name=curriculum_name).order_by('sub_id')
 
@@ -251,8 +276,10 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
                         'sub_id': task.sub_id,
                         'task_id': task.task_id,
                         'task_name': task.task_name,
-                        'grade': dict(TblTask.GRADE_CHOICES).get(tbl_task.grade, "未設定"),
-                        'priority': dict(TblTask.PRIORITY_CHOICES).get(tbl_task.priority, "未設定"),
+                        'grade': tbl_task.grade,
+                        'priority': tbl_task.priority,
+                        # 'grade': dict(TblTask.GRADE_CHOICES).get(tbl_task.grade, "未設定"),
+                        # 'priority': dict(TblTask.PRIORITY_CHOICES).get(tbl_task.priority, "未設定"),
                         'tag': tbl_task.tag,
                         'grade_choices': TblTask.GRADE_CHOICES,
                         'priority_choices': TblTask.PRIORITY_CHOICES,
@@ -367,6 +394,8 @@ class SaveTasksView(View):
         try:
             data = json.loads(request.body)
             tasks = data.get('tasks', [])
+            print(tasks)
+            
 
             # tasksにsub_idを追加して保存
             for task in tasks:
@@ -608,7 +637,7 @@ def create_curriculum(request):
                 curr_name=curr_name,
                 sub_id=0,
                 sub_name='全体',
-                next_num=1
+                next_num=1,
             )
             
             # 最初のタスクをTblCurrDetailに追加
@@ -618,7 +647,7 @@ def create_curriculum(request):
                 sub_id=0,
                 task_id=1,
                 task_name='すべてのタスクを完了させる',
-                next_num=1,
+                next_num=2,
             )
             
             # s_idが同じでu_authが1のu_idを取得
@@ -636,12 +665,12 @@ def create_curriculum(request):
 
 
             # 入力された教科名の回数だけデータベースに保存
-            next_num = 2
+            next_num = 1
             for subject in subjects:
                 TblCurriculum.objects.create(
                     s=school,
                     curr_name=curr_name,
-                    sub_id=subject.id,
+                    sub_id=next_num,
                     sub_name=subject.sub_name,
                     next_num=next_num
                 )
