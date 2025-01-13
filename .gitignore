@@ -18,6 +18,3 @@ __pycache__/
 
 # Virtual Environment
 venv/
-
-# Ignore settings.py
-settings.py
