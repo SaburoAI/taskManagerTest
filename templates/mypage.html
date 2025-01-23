@@ -39,12 +39,15 @@
               <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">編集</button>
               </li>
+              {% comment %} 
               <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-settings">設定</button>
-              </li>
+              </li> 
+              
               <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">パスワード変更</button>
               </li>
+              {% endcomment %}
             </ul>
             <div class="tab-content pt-2">
               <div class="tab-pane fade show active profile-overview" id="profile-overview">
@@ -57,19 +60,28 @@
                   <div class="col-lg-3 col-md-4 label">所属塾</div>
                   <div class="col-lg-9 col-md-8">{{belongTo}}</div>
                 </div>
+
+                {% if user_info.auth == 0 %}
                 <div class="row">
                   <div class="col-lg-3 col-md-4 label">選択カリキュラム</div>
                   <div class="col-lg-9 col-md-8">｛カリキュラム名｝</div>
                 </div>
+                
+                
                 <div class="row">
                   <div class="col-lg-3 col-md-4 label">学年</div>
                   <div class="col-lg-9 col-md-8">｛生徒の学年・年齢｝</div>
                 </div>
+
+                {% endif %}
+                {% comment %} 
                 <div class="row">
                   <div class="col-lg-3 col-md-4 label">Email</div>
                   <div class="col-lg-9 col-md-8">｛メールアドレス｝</div>
                 </div>
-              </div>
+                {% endcomment %}
+              </div> 
+              
 
               <div class="tab-pane fade profile-edit pt-3" id="profile-edit">
                 <!-- Profile Edit Form -->
@@ -77,39 +89,54 @@
                   <div class="row mb-3">
                     <label for="fullName" class="col-md-4 col-lg-3 col-form-label">名前</label>
                     <div class="col-md-8 col-lg-9">
-                      <input name="fullName" type="text" class="form-control" id="fullName" value="{username}">
+                      <input name="fullName" type="text" class="form-control" id="fullName" value="ユーザー氏名">
+                    </div>
+                  </div>
+                  <div class="row mb-3">
+                    <label for="fullName" class="col-md-4 col-lg-3 col-form-label">ユーザーID</label>
+                    <div class="col-md-8 col-lg-9">
+                      <input name="fullName" type="text" class="form-control" id="u_name" value="{{user_info.name}}">
                     </div>
                   </div>
                   <div class="row mb-3">
                     <label for="company" class="col-md-4 col-lg-3 col-form-label">所属塾</label>
                     <div class="col-md-8 col-lg-9">
-                      <input name="company" type="text" class="form-control" id="company" value="｛塾の名前｝">
+                      <input name="company" type="text" class="form-control" id="company" value="{{user_info.belongTo}}">
                     </div>
                   </div>
+                  {% comment %} 
                   <div class="row mb-3">
                     <label for="Job" class="col-md-4 col-lg-3 col-form-label">選択教科</label>
                     <div class="col-md-8 col-lg-9">
                       <input name="job" type="text" class="form-control" id="Job" value="">
                     </div>
-                  </div>
+                  </div> 
+                  {% endcomment %}
+
+                  {% if user_info.auth == 0 %}
+
                   <div class="row mb-3">
                     <label for="Address" class="col-md-4 col-lg-3 col-form-label">学年</label>
                     <div class="col-md-8 col-lg-9">
                       <input name="address" type="text" class="form-control" id="Address" value="｛生徒の学年・年齢｝">
                     </div>
                   </div>
+                  {% endif %}
+                  {% comment %} 
                   <div class="row mb-3">
                     <label for="Email" class="col-md-4 col-lg-3 col-form-label">Email</label>
                     <div class="col-md-8 col-lg-9">
                       <input name="email" type="email" class="form-control" id="Email" value="k.anderson@example.com">
                     </div>
-                  </div>
+                  </div> 
+                  {% endcomment %}
                   <div class="text-center">
                     <button type="submit" class="btn btn-primary">変更を保存</button>
                   </div>
                 </form><!-- End Profile Edit Form -->
               </div>
 
+              {% comment %} 
               <div class="tab-pane fade pt-3" id="profile-settings">
                 <!-- Settings Form -->
                 <form>
@@ -146,34 +173,47 @@
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                   </div>
                 </form><!-- End settings Form -->
-              </div>
+              </div> 
+             
 
-              <div class="tab-pane fade pt-3" id="profile-change-password">
+
+            <div class="tab-pane fade pt-3" id="profile-change-password">
                 <!-- Change Password Form -->
-                <form>
-                  <div class="row mb-3">
-                    <label for="currentPassword" class="col-md-4 col-lg-3 col-form-label">現在のパスワード</label>
-                    <div class="col-md-8 col-lg-9">
-                      <input name="password" type="password" class="form-control" id="currentPassword">
+                <form method="post" action="{% url 'password_change' %}">
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <label for="{{ form.old_password.id_for_label }}" class="col-md-4 col-lg-3 col-form-label">現在のパスワード</label>
+                        <div class="col-md-8 col-lg-9">
+                            {{ form.old_password }}
+                        </div>
                     </div>
-                  </div>
-                  <div class="row mb-3">
-                    <label for="newPassword" class="col-md-4 col-lg-3 col-form-label">新しいパスワード</label>
-                    <div class="col-md-8 col-lg-9">
-                      <input name="newpassword" type="password" class="form-control" id="newPassword">
+                    <div class="row mb-3">
+                        <label for="{{ form.new_password1.id_for_label }}" class="col-md-4 col-lg-3 col-form-label">新しいパスワード</label>
+                        <div class="col-md-8 col-lg-9">
+                            {{ form.new_password1 }}
+                        </div>
                     </div>
-                  </div>
-                  <div class="row mb-3">
-                    <label for="renewPassword" class="col-md-4 col-lg-3 col-form-label">パスワード入力（確認）</label>
-                    <div class="col-md-8 col-lg-9">
-                      <input name="renewpassword" type="password" class="form-control" id="renewPassword">
+                    <div class="row mb-3">
+                        <label for="{{ form.new_password2.id_for_label }}" class="col-md-4 col-lg-3 col-form-label">パスワード入力（確認）</label>
+                        <div class="col-md-8 col-lg-9">
+                            {{ form.new_password2 }}
+                        </div>
                     </div>
-                  </div>
-                  <div class="text-center">
-                    <button type="submit" class="btn btn-primary">パスワード変更</button>
-                  </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">パスワード変更</button>
+                    </div>
                 </form><!-- End Change Password Form -->
-              </div>
+            </div>
+            
+            <!-- メッセージを表示 -->
+            {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %} {% endcomment %}
+
             </div><!-- End Bordered Tabs -->
           </div>
         </div>

@@ -1,7 +1,46 @@
 from django import forms
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.forms import PasswordChangeForm
 from .models import *
 
+class TblUserPasswordChangeForm(forms.ModelForm):
+    old_password = forms.CharField(
+        label="現在のパスワード",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'currentPassword'})
+    )
+    new_password1 = forms.CharField(
+        label="新しいパスワード",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'newPassword'})
+    )
+    new_password2 = forms.CharField(
+        label="パスワード入力（確認）",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'renewPassword'})
+    )
+
+    class Meta:
+        model = TblUser
+        fields = ['old_password', 'new_password1', 'new_password2']
+
+    def clean(self):
+        cleaned_data = super().clean()
+        old_password = cleaned_data.get("old_password")
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        if not self.instance.check_password(old_password):
+            self.add_error('old_password', "現在のパスワードが正しくありません。")
+
+        if new_password1 and new_password2 and new_password1 != new_password2:
+            self.add_error('new_password2', "新しいパスワードが一致しません。")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.u_pass = make_password(self.cleaned_data['new_password1'])
+        if commit:
+            user.save()
+        return user
 class UserForm(forms.ModelForm):
     class Meta:
         model = TblUser
@@ -78,3 +117,5 @@ class UpdateTaskForm(forms.ModelForm):
     class Meta:
         model = TblTask
         fields = ['status', 'deadline']
+        
+        
