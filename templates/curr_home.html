@@ -47,19 +47,21 @@
               </div>
               <div class="modal-body">
                   <form id="addMemberForm">
+                      {% comment %} 
                       <div class="mb-3">
                           <label for="memberSearch" class="form-label">メンバー検索</label>
                           <div class="input-group">
                               <input type="text" class="form-control" id="memberSearch" placeholder="ユーザーIDで検索">
                               <button class="btn btn-outline-secondary" type="button" id="searchButton">検索</button>
                           </div>
-                      </div>
+                      </div> 
+                      {% endcomment %}
                       <div class="mb-3">
                           <label for="memberDropdown" class="form-label">メンバー選択</label>
                           <select class="form-select" id="memberDropdown">
                               <option selected>メンバーを選択...</option>
-                              {% for user in all_users %}
-                                  <option value="{{ user.u_id }}">ID: {{ user.u_id }}, 名前: {{ user.u_name }}</option>
+                              {% for user in users %}
+                                  <option value="{{ user.u_id }}">名前: {{ user.u_name }}</option>
                               {% endfor %}
                           </select>
                       </div>
@@ -81,6 +83,7 @@
         const searchButton = document.getElementById('searchButton');
         const memberDropdown = document.getElementById('memberDropdown');
     
+        /*
         searchButton.addEventListener('click', function() {
             const query = document.getElementById('memberSearch').value;
             const schoolId = "{{ school_id }}"; // Djangoテンプレートからschool_idを取得
@@ -99,6 +102,7 @@
                     .catch(error => console.error('Error:', error));
             }
         });
+        */
     
         const addMemberForm = document.getElementById('addMemberForm');
         addMemberForm.addEventListener('submit', function(event) {
@@ -121,12 +125,13 @@
                         school_id: schoolId,
                         deadline: deadline
                     })
+                    
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'success') {
                         alert('メンバーが正常に追加されました');
-                        location.reload();
+                        //location.reload();
                     } else {
                         alert('エラーが発生しました: ' + data.message);
                     }
@@ -218,7 +223,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
                       <div class="modal-body">
-                        <textarea id="bulk-add-textarea" class="form-control" rows="10" placeholder="タスク名を改行で区切って入力してください"></textarea>
+                        <textarea id="bulk-add-textarea" class="form-control" rows="10" placeholder="例: タグ タスク名  重要度  優先度&#10;タスクは改行で区切り、タスク内の要素はタブキーで分けます。"></textarea>
                       </div>
                       <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
@@ -347,6 +352,20 @@
                 const saveButton = document.getElementById('save-button');
                 const importTaskButton = document.getElementById('import-task-button');
                 const bulkAddButton = document.getElementById('bulk-add-button');
+
+                document.getElementById('bulk-add-textarea').addEventListener('keydown', function(e) {
+                  if (e.key === 'Tab') {
+                      e.preventDefault();
+                      const start = this.selectionStart;
+                      const end = this.selectionEnd;
+              
+                      // Insert tab character at the cursor position
+                      this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+              
+                      // Move the cursor to the right position
+                      this.selectionStart = this.selectionEnd = start + 1;
+                  }
+              });
 
                 if (autoFillButton) {
                   autoFillButton.addEventListener('click', function() {

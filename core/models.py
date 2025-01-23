@@ -7,6 +7,7 @@ from django.dispatch import receiver
 class TblSchoolid(models.Model):
     id = models.SmallAutoField(primary_key=True)
     s_id = models.TextField()
+    #s_name = models.charField(max_length=100, default='未設定')
     s_pass = models.TextField()
     l_login_date = models.DateTimeField(blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
@@ -37,12 +38,15 @@ class TblUser(models.Model):
     ]
     u_id = models.SmallAutoField(primary_key=True)
     u_name = models.TextField()
+    #user_simei = models.charField(max_length=100,default='未設定')
     u_pass = models.TextField()
     s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
     u_auth = models.SmallIntegerField(choices=AUTH_TYPE,default=0)
     l_login_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
+    
+    
 
     class Meta:
         managed = False
@@ -50,6 +54,18 @@ class TblUser(models.Model):
 
     def __str__(self):
         return self.u_name
+    
+    
+@receiver(post_save, sender=TblUser)
+def create_parent_account(sender, instance, created, **kwargs):
+    if created and instance.u_auth == 0:
+        parent_u_name = f'p{instance.u_name}'
+        TblUser.objects.create(
+            u_name=parent_u_name,
+            u_pass=instance.u_pass,
+            s=instance.s,
+            u_auth=-1
+        )
 
 
 class TblSubject(models.Model):
@@ -180,7 +196,7 @@ class TblTestname(models.Model):
     id = models.SmallAutoField(primary_key=True)
     s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
     name = models.TextField()
-    dsp_order = models.SmallIntegerField()
+    dsp_order = models.SmallIntegerField(default=0)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 

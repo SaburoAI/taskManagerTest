@@ -19,8 +19,11 @@ urlpatterns = [
     path('カリキュラム/<str:curriculum_name>/', CurrHomeView.as_view(), name='curriculum_home'),
     path('get-task-attributes/', get_task_attributes, name='get_task_attributes'),
     path('マイページ/', MypageView.as_view(), name='my_page'),
-    path("教科一覧", SubjectHomeView.as_view(), name="subject_list"),
+    path("教科一覧/", SubjectHomeView.as_view(), name="subject_list"),
+    path("テスト一覧/", TestHomeView.as_view(), name="test_list"),
+
     path('save_subjects/', SaveSubjectsView.as_view(), name='save_subjects'),
+    path('save_tests/', SaveTestsView.as_view(), name='save_tests'),
 
 
     path('add-member-to-task/', AddMemberToTaskView.as_view(), name='add_member_to_task'),

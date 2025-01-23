@@ -9,7 +9,7 @@
       <a href="{% url 'root' %}" class="logo d-flex align-items-center">
 
          <!-- 今後ロゴを設定できるようにする -->
-        <span class="d-none d-lg-block">塾名</span>
+        <span class="d-none d-lg-block">ベイスクール</span>
       </a>
     </div><!-- End Logo -->
   
@@ -58,10 +58,9 @@
   
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-
-            {% if u_id %}
+            {% if user_id %}
               ユーザーID: {{ u_name }}
-            {% elif s_id %}
+            {% elif school_id %}
               学校ID: {{ s_id }}
             {% endif %}
             <li>
