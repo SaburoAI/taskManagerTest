@@ -8,6 +8,7 @@ from django.views.generic.edit import FormView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.http import require_GET
+from django.contrib.auth.views import PasswordChangeView
 from .models import *
 from .forms import *
 from django.contrib import messages
@@ -18,7 +19,7 @@ from .contextMaker import *
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json, logging, os
-from datetime import datetime 
+from datetime import datetime
 
 
 
@@ -72,6 +73,27 @@ class MypageView(CustomLoginRequiredMixin, TemplateView):
                 ctxt['user_info'] = None
         
         return ctxt
+    
+    
+class TblUserPasswordChangeView(LoginRequiredMixin, FormView):
+    form_class = TblUserPasswordChangeForm
+    template_name = 'mypage.html'
+    success_url = reverse_lazy('password_change_done')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.request.user
+        return kwargs
+
+    def form_invalid(self, form):
+        messages.error(self.request, "パスワードが一致しません。もう一度お試しください。")
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def form_valid(self, form):
+        form.save()
+        messages.success(self.request, "パスワードが変更されました。")
+        return super().form_valid(form)
+    
     
 @custom_login_required
 def create_user(request):
