@@ -34,7 +34,6 @@
       </li>
 
 
-{% if account.u_auth == 0 %}
 
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'task_add' %}">
@@ -43,7 +42,6 @@
                 </a>
             </li>
 
-{% endif %}
 
 {% if account.u_auth == 1 or account.u_auth == 2 %}
 <li class="nav-item">
@@ -60,6 +58,13 @@
         <a class="nav-link collapsed" href="{% url 'subject_list'%}">
           <i class="bi bi-card-list"></i>
           <span>教科一覧</span>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'test_list' %}">
+          <i class="bi bi-card-list"></i>
+          <span>テスト一覧</span>
         </a>
       </li>
 

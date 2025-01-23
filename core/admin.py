@@ -10,7 +10,8 @@ class TblCurriculumAdmin(admin.ModelAdmin):
 
 class TblSubjectAdmin(admin.ModelAdmin):
     list_display = ('id','sub_name')
-
+class TblTaskAdmin(admin.ModelAdmin):
+    list_display = ('id', 'u', 'curr','sub_id', 'task_id', 'status','grade', 'priority', 'tag') 
 class TblGradesAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'tst','rank', 'score', 'update_date','reg_date')
     
@@ -39,7 +40,7 @@ class TblSchoolidAdmin(admin.ModelAdmin):
 
 admin.site.register(TblSchoolid, TblSchoolidAdmin)
 admin.site.register(TblUser)
-admin.site.register(TblTask)
+admin.site.register(TblTask, TblTaskAdmin)
 admin.site.register(TblCurrDetail, TblCurrDetailAdmin)
 admin.site.register(TblCurriculum, TblCurriculumAdmin)
 admin.site.register(TblSubject, TblSubjectAdmin)

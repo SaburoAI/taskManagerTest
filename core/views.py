@@ -44,11 +44,12 @@ class MypageView(CustomLoginRequiredMixin, TemplateView):
         
         if 'school_id' in self.request.session:
             school_id = self.request.session.get('school_id')
+            school = TblSchoolid.objects.get(id=school_id)
             user = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
             if user:
                 user_info = {
                     'id': school_id,
-                    'name': user.u_name,
+                    'name': school,
                     'auth': dict(TblUser.AUTH_TYPE).get(user.u_auth, "Unknown"),
                     'school': user.s_id
                 }
@@ -105,7 +106,7 @@ def root_view(request):
     
     if user_id:
         user = TblUser.objects.get(u_id=user_id)
-        if user.u_auth == 0:
+        if user.u_auth in [0, -1]:
             return redirect('studentHome')
         else:
             return redirect('teacherHome')
@@ -216,7 +217,6 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
             
             ctxt['user'] = user.u_name
             ctxt['user_id'] = user_id
-            print(school_id)
             ctxt['school_id'] = school_id
             
             try:
@@ -232,13 +232,14 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
             return ctxt
         
         
-        all_users = TblUser.objects.filter(s_id=school_id)
+        users = TblUser.objects.filter(s_id=school_id, u_auth__in=[0, 1])
         account = get_account_info(self.request)
         ctxt.update(get_teacher_home_context(school_id, user_id))
   
 
         # curriculum_nameとsが一致するuを取得
         curriculum_name = kwargs.get('curriculum_name')
+        
         try:
             school = TblSchoolid.objects.get(id=school_id)
             
@@ -247,6 +248,7 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
             return ctxt
 
         all_task = TblTask.objects.filter(curr__curr_name=curriculum_name,)
+        
         
         students = TblUser.objects.filter(u_id__in=all_task.values_list('u', flat=True), u_auth=0)
         teachers = TblUser.objects.filter(u_id__in=all_task.values_list('u', flat=True), u_auth__in=[2])
@@ -308,10 +310,9 @@ class CurrHomeView(CustomLoginRequiredMixin, TemplateView):
         ctxt['teachers'] = teachers
         ctxt['curriculum_name'] = curriculum_name
         ctxt['account'] = account
-        ctxt['all_users'] = all_users
+        ctxt['users'] = users
         ctxt['subjects'] = subjects
         ctxt['tasks'] = tasks
-        print(account)
         return ctxt
 
 
@@ -327,32 +328,44 @@ class AddMemberToTaskView(View):
 
             user = TblUser.objects.get(u_id=user_id)
             school = TblSchoolid.objects.get(s_id=school_id)
-            curriculums = TblCurriculum.objects.filter(curr_name=curriculum_name, s=school)
+            if 'school_id' in self.request.session:
+                school_user = "t" + str(school)
+
+
+            elif 'user_id' in self.request.session:
+                user_id= self.request.session.get('user_id')
+                school_user = TblUser.objects.get(u_id=user_id)
+                
             
 
+            copy_from_user = TblUser.objects.get(u_name=school_user)
+            curriculums = TblCurriculum.objects.filter(curr_name=curriculum_name, s=school)
+
             for curriculum in curriculums:
-                curr_details = TblCurrDetail.objects.filter(curr=curriculum, s=school)
-                for detail in curr_details:
+                # uとcurrがJSONと一致するタスクをフィルタリング
+                copy_from_tasks = TblTask.objects.filter(u=copy_from_user, curr=curriculum)
+                for task in copy_from_tasks:
                     task_data = {
                         'u': user,
-                        'curr': curriculum,
-                        'sub_id': detail.sub_id,
-                        'task_id': detail.task_id,
-                        'status': 0,  # 初期ステータスを設定
-                        'grade': 0,   # 初期グレードを設定
-                        'priority': 0, # 初期優先度を設定
-                        'deadline': deadline  # 期限を設定
+                        'curr': task.curr,
+                        'sub_id': task.sub_id,
+                        'task_id': task.task_id,
+                        'status': task.status,
+                        'grade': task.grade,
+                        'priority': task.priority,
+                        'tag': task.tag,
+                        'deadline': deadline  # JSONから取得した期限を設定
                     }
-
+                    print(task_data)
 
                     # 既存のタスクを更新するか、新しいタスクを作成する
-                    # TblTask.objects.update_or_create(
-                    #     u=user,
-                    #     curr=curriculum,
-                    #     sub_id=detail.sub_id,
-                    #     task_id=detail.task_id,
-                    #     defaults=task_data
-                    # )
+                    TblTask.objects.update_or_create(
+                        u=user,
+                        curr=task.curr,
+                        sub_id=task.sub_id,
+                        task_id=task.task_id,
+                        defaults=task_data
+                    )
 
             return JsonResponse({'status': 'success'})
         except TblUser.DoesNotExist:
@@ -361,8 +374,6 @@ class AddMemberToTaskView(View):
             return JsonResponse({'status': 'error', 'message': 'School does not exist'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
-
-
 @csrf_exempt
 def get_task_attributes(request):
     try:
@@ -400,7 +411,6 @@ class SaveTasksView(View):
         try:
             data = json.loads(request.body)
             tasks = data.get('tasks', [])
-            print(data)
 
             # tasksにsub_idを追加して保存
             for task in tasks:
@@ -481,6 +491,7 @@ class SubjectHomeView(CustomLoginRequiredMixin, TemplateView):
         ctxt = super().get_context_data(**kwargs)
         ctxt.update(get_account_info(self.request))
         
+        
         if 'school_id' in self.request.session:
             school_id = self.request.session.get('school_id')
             ctxt['school_id'] = school_id
@@ -493,6 +504,7 @@ class SubjectHomeView(CustomLoginRequiredMixin, TemplateView):
             return redirect('root')  # ルートにリダイレクト
         else:
             ctxt['error'] = 'No valid session data.'
+        
             return ctxt
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -521,6 +533,57 @@ class SaveSubjectsView(View):
         return JsonResponse({'status': 'success'})
 
 
+class TestHomeView(CustomLoginRequiredMixin, TemplateView):
+    template_name = "teacher_pages/test_add_view.html"
+    
+    def get_context_data(self, **kwargs):
+        ctxt = super().get_context_data(**kwargs)
+        ctxt.update(get_account_info(self.request))
+        
+        
+        if 'school_id' in self.request.session:
+            school_id = self.request.session.get('school_id')
+            ctxt['school_id'] = school_id
+            user_id = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+            ctxt['user'] = user_id
+            tests = TblTestname.objects.filter(s=school_id).values('id', 'name')
+            ctxt['tests'] = tests
+            return ctxt
+        elif 'user_id' in self.request.session:
+            return redirect('root')  # ルートにリダイレクト
+        else:
+            ctxt['error'] = 'No valid session data.'
+        
+            return ctxt
+
+@method_decorator(csrf_exempt, name='dispatch')
+class SaveTestsView(View):
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        tests = data.get('tests', [])
+        test_ids = [test['id'] for test in tests if test['id'] != '-1']
+        print("test_ids", test_ids)
+
+        # 送られてきていない教科を削除
+        TblTestname.objects.exclude(id__in=test_ids).delete()
+
+        for test in tests:
+            school = TblSchoolid.objects.get(id=test['s_id'])
+            if test['id'] == '-1':
+                TblTestname.objects.create(
+                    s=school,
+                    name=test['name']
+                )
+                
+            else:
+                TblTestname.objects.filter(id=test['id']).update(
+                    s=school,
+                    name=test['name']
+                )
+                
+
+        return JsonResponse({'status': 'success'})
+
 
 #講師側ビュー
 class TeacherHomeView(CustomLoginRequiredMixin,TemplateView):
@@ -531,7 +594,15 @@ class TeacherHomeView(CustomLoginRequiredMixin,TemplateView):
         ctxt = super().get_context_data(**kwargs)
         school_id = self.request.session.get('school_id')
         user_id = self.request.session.get('user_id')
+
+        if user_id:
+            user = TblUser.objects.get(u_id=user_id)
+            ctxt['user_id'] = user_id
+            ctxt['user_name'] = user.u_name
+        if school_id:
+            ctxt['school_id'] = school_id
         ctxt.update(get_account_info(self.request))
+
 
         
 
@@ -563,6 +634,7 @@ class TeacherTaskAddView(CustomLoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
         ctxt.update(get_account_info(self.request))
+        
 
 
         # URLから渡されたstudent_nameを取得
@@ -575,7 +647,7 @@ class TeacherTaskAddView(CustomLoginRequiredMixin, TemplateView):
         student_id = student_user.u_id
 
         tasks = TblTask.objects.filter(u=student_user).order_by('sub_id')
-        
+
         curr_ids = tasks.values_list('curr', flat=True).distinct()
         curriculums = TblCurriculum.objects.filter(id__in=curr_ids)
         curr_details = TblCurrDetail.objects.filter(curr_id__in=curr_ids)
@@ -653,21 +725,17 @@ def create_curriculum(request):
                 task_name='すべてのタスクを完了させる',
                 next_num=2,
             )
+            teacher = TblUser.objects.filter(s=school).first()
+            TblTask.objects.create(
+                u=teacher,
+                curr=curriculum,
+                sub_id=0,
+                task_id=1,
+                grade=1,
+                priority=1,
+                tag='全体'
+            )
             
-            # s_idが同じでu_authが1のu_idを取得
-            teachers = TblUser.objects.filter(s=school, u_auth=1)
-            for teacher in teachers:
-                TblTask.objects.create(
-                    u=teacher,
-                    curr=curriculum,
-                    sub_id=0,
-                    task_id=1,
-                    grade=1,
-                    priority=1,
-                    tag='全体'
-                )
-
-
             # 入力された教科名の回数だけデータベースに保存
             next_num = 1
             for subject in subjects:
@@ -849,13 +917,20 @@ class StudentHomeView(CustomLoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
         ctxt.update(get_account_info(self.request))
+        
 
         user_id = self.request.session.get('user_id')
-        
+        user = TblUser.objects.get(u_id=user_id)
+        if user.u_auth == -1:
+            user.u_name = user.u_name[1:]
+            s_user = TblUser.objects.get(u_name=user.u_name)
+            user_id = s_user.u_id
+            
         ctxt.update(get_home_context(user_id))
         
         if user_id:
             user = TblUser.objects.get(u_id=user_id)
+            ctxt['user_id'] = user_id
             ctxt['user_name'] = user.u_name
             ctxt['user_auth'] = user.u_auth
             ctxt['test_result_form'] = TestResultForm(user=user)
