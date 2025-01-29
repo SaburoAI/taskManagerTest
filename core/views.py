@@ -203,9 +203,11 @@ class LibraryView(CustomLoginRequiredMixin, TemplateView):
         else:
             ctxt['error'] = 'No valid session data.'
             return ctxt
+        ctxt.update(get_account_info(self.request))
         ctxt.update(get_curr_info(user_id))
         ctxt.update(get_teacher_home_context(school_id, user_id))
         ctxt.update(get_account_info(self.request))
+        print(ctxt)
         
 
 
@@ -629,7 +631,8 @@ class TeacherHomeView(CustomLoginRequiredMixin,TemplateView):
         
 
         ctxt.update(get_teacher_home_context(school_id, user_id))
-        
+        print(ctxt)
+
         return ctxt
 
 
@@ -645,6 +648,7 @@ class TaskAddStuListView(CustomLoginRequiredMixin,TemplateView):
         
 
         ctxt.update(get_teacher_home_context(school_id, user_id))
+        
         
         return ctxt
     
@@ -702,6 +706,7 @@ class TeacherTaskAddView(CustomLoginRequiredMixin, TemplateView):
         ctxt['subjects'] = subjects
         ctxt['subject_curriculum_pairs'] = subject_curriculum_pairs
         ctxt['tasks_by_tag'] = tasks_by_tag
+        
         
         return ctxt
 
@@ -796,7 +801,6 @@ class StudentDetailView(CustomLoginRequiredMixin, TemplateView):
             except TblUser.DoesNotExist:
                 ctxt['error'] = '指定されたユーザーは存在しません。'
 
-            
         return ctxt
     
     def post(self, request, *args, **kwargs):

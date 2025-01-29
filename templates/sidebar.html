@@ -34,13 +34,14 @@
       </li>
 
 
-
+    {% if account.u_auth == 1 or account.u_auth == 2 or account.u_auth == 0 %}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'task_add' %}">
                     <i class="bi bi-question-circle"></i>
                     <span>タスク追加</span>
                 </a>
             </li>
+    {% endif %}
 
 
 {% if account.u_auth == 1 or account.u_auth == 2 %}
@@ -50,6 +51,7 @@
       <span>タスク割り当て</span>
   </a>
 </li>
+
 {% endif %}
 
       {% if request.session.school_id %}

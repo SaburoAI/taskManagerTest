@@ -40,7 +40,18 @@
     
                   <!-- List group with Advanced Contents -->
                   <div class="list-group">
-                    {% if account.u_auth != 0 and account.u_auth != -1 %}
+                    
+                    {% if u_auth == 0 or u_auth == -1 %}
+                    
+                    <a href="{% url 'curriculum_home' curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{curr_name}}</h5>
+                        <small></small>
+                      </div>
+                  
+                    </a>
+                    {% else %}
+
                     {% for curriculum in curriculums %}
                     <a href="{% url 'curriculum_home' curriculum.curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
                       <div class="d-flex w-100 justify-content-between">
@@ -50,14 +61,8 @@
                   
                     </a>
                     {% endfor %}
-                    {% else %}
-                    <a href="{% url 'curriculum_home' curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
-                      <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{curr_name}}</h5>
-                        <small></small>
-                      </div>
-                  
-                    </a>
+
+
                     {% endif %}
                   </div><!-- End List group Advanced Content -->
                  
