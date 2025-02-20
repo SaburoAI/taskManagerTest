@@ -251,7 +251,7 @@
                       <th>タグ</th>
                       <th>タスク名</th>
                       <th>重要度</th>
-                      <th>優先度</th>
+                      <th>難易度</th>
                       <!-- 必要に応じて他のフィールドを追加 -->
                     </tr>
                   </thead>
@@ -543,9 +543,9 @@
             
                     rows.forEach(row => {
                         const task = {
-                            user_name: '{{ account.u_name }}',
-                            user_id: '{{ account.u_id }}',
-                            s_id: '{{ account.school_id }}',
+                            user_name: '{{ u_name }}',
+                            user_id: '{{ u_id }}',
+                            s_id: '{{ s_id }}',
                             curr_name: '{{ curriculum_name }}',
                             management_id: row.querySelector('.manage-id').innerText,
                             subject: row.querySelector('.subject-cell').innerText,

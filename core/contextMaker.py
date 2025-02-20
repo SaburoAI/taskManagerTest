@@ -2,8 +2,8 @@ from django.db.models import Count, F, Case, When, IntegerField, Q, Func, Value,
 from .models import *
 from django.utils import timezone
 from django.utils.dateformat import DateFormat
-from datetime import datetime
-import datetime
+# import datetime
+from datetime import timedelta, date, datetime
 
 
 
@@ -48,37 +48,46 @@ def get_account_info(request):
     if not user_id and not school_id:
         return {"error": "you are not logged in"}
     
-    if user_id:
-        user = TblUser.objects.get(u_id=user_id)
-        if user.u_auth == 0:
-            return {
-                "u_id": user.u_id,
-                "u_name": user.u_name,
-                "u_auth": user.u_auth,
-                "school_id": user.s_id
-            }
-        else:
-            return {
-                "u_id": user.u_id,
-                "u_name": user.u_name,
-                "u_auth": user.u_auth,
-                "school_id": user.s_id
-            }
+    account_info = {}
     
-    if school_id:
-        school = TblSchoolid.objects.get(id=school_id)
-        user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
-        
-        return {
+    if user_id is not None:
+        user = TblUser.objects.get(u_id=user_id)
+        s_id = user.s_id
+        school = TblSchoolid.objects.get(id=s_id)
+        account_info = {
+            "u_id": user.u_id,
+            "u_name": user.u_name,
+            "u_simei": user.user_simei,
+            "u_auth": user.u_auth,
+            "auth_type": user.get_u_auth_display(),
+            "s_id": user.s_id,
             "school_id": school.id,
-            "s_id": school.s_id,
-            "s_name": school.s_id,
-            "u_id": user_neme.u_id,
-            "u_name": user_neme.u_name,
-            "u_auth": user_neme.u_auth
+            "s_name": school.s_name,
         }
     
-    return {"error": "invalid session data"}
+    if school_id is not None:
+        school = TblSchoolid.objects.get(id=school_id)
+        user_neme = TblUser.objects.filter(s_id=school_id, u_auth=2).first()
+        account_info = {
+            "school_id": school.id,
+            "s_id": school.s_id,
+            "s_name": school.s_name,
+            "u_id": user_neme.u_id,
+            "u_name": user_neme.u_name,
+            "u_simei": user_neme.user_simei,
+            "u_auth": user_neme.u_auth,
+            "auth_type": user_neme.get_u_auth_display(),
+        }
+    
+    
+    
+   
+    
+    # 新しい変数を追加
+    account_info["in"] = "some_value"
+    
+    
+    return account_info
 
 def get_library_context():
     ctxt = {}
@@ -116,6 +125,7 @@ def get_curr_info(u_id):
         'total_tasks': total_tasks,
         'completed_tasks': completed_tasks,
         'achievement_rate': achievement_rate
+        
     }
 
 def get_school_type(u_id):
@@ -194,7 +204,7 @@ def get_review_list(u_id):
         else:
             review_date = None
 
-        review_date_formatted = DateFormat(review_date).format('Y/m/d') if review_date else '不明'
+        review_date_formatted  = DateFormat(review_date).format('Y/m/d') if review_date else '不明'
         
         review_details.append({
             'id': id,
@@ -227,18 +237,20 @@ def get_test_list(u_id):
     
     return score_list, testnames
 
+from datetime import timedelta, date
+
 def get_complete_task_date(u_id, days=30):
     # TblTaskからu_idが一致するものを取得
     tasks = TblTask.objects.filter(u_id=u_id).exclude(number_1stchk__isnull=True)
     complete_task_dates = {}
     
     # 今日の日付を取得
-    today = datetime.date.today()
+    today = date.today()
     
     # 指定された日数分の日付を生成
     for i in range(days):
-        date = today - datetime.timedelta(days=i)
-        complete_task_dates[date.isoformat()] = 0  # 初期値として0を設定
+        current_date = today - timedelta(days=i)
+        complete_task_dates[current_date.isoformat()] = 0  # 初期値として0を設定
     
     # タスクの完了日をカウント
     for task in tasks:
@@ -309,12 +321,12 @@ def get_teacher_home_context(school_id, user_id):
     if school_id:
         user = TblSchoolid.objects.get(id=school_id)
         school = TblSchoolid.objects.get(id=school_id)
-        context['user_name'] = user.s_id
+        context['user_name'] = user.s_name
 
     elif user_id:
         user = TblUser.objects.get(u_id=user_id)
         school = TblSchoolid.objects.get(id=user.s_id)
-        context['user_name'] = user.u_name
+        context['user_name'] = user.user_simei
     
     if not school:
         return context
@@ -329,10 +341,64 @@ def get_teacher_home_context(school_id, user_id):
         student_info = {
             'u_id': student.u_id,
             'u_name': student.u_name,
+            'user_simei': student.user_simei,
             'school_type': get_school_type(student.u_id),
-            'curr_info': get_curr_info(student.u_id)
+            'curr_info': get_curr_info(student.u_id),
+            # 'task_info': get_task_info(student.u_id),
         }
         student_data.append(student_info)
     context['student_data'] = student_data
 
     return context
+
+def get_task_info(user_id, curriculum_name):
+    curriculums = TblCurriculum.objects.filter(curr_name=curriculum_name).order_by('sub_id')
+    subjects = [curriculum.sub_name for curriculum in curriculums]
+    tasks = {}
+    recent_task = []
+    one_week_ago = date.today() - timedelta(days=7)
+
+    for curriculum in curriculums:
+        task_details = TblCurrDetail.objects.filter(curr=curriculum).order_by('task_id')
+        tasks[curriculum.sub_name] = []
+        for task in task_details:
+            try:
+                tbl_task = TblTask.objects.get(u_id=user_id, curr__curr_name=curriculum_name, sub_id=task.sub_id, task_id=task.task_id)
+                task_detail = {
+                    'id': task.id,  # TblCurrDetailのIDであることに注意
+                    'sub_id': task.sub_id,
+                    'task_id': task.task_id,
+                    'task_name': task.task_name,
+                    'grade': tbl_task.grade,
+                    'priority': tbl_task.priority,
+                    'tag': tbl_task.tag,
+                    'grade_choices': TblTask.GRADE_CHOICES,
+                    'priority_choices': TblTask.PRIORITY_CHOICES,
+                    'status': tbl_task.status,
+                    'deadline': tbl_task.deadline,
+                    'number_1stchk': tbl_task.number_1stchk,
+                    'get_grade_display': tbl_task.get_grade_display(),
+                    'get_priority_display': tbl_task.get_priority_display(),
+                }
+                tasks[curriculum.sub_name].append(task_detail)
+                
+                if tbl_task.number_1stchk and tbl_task.number_1stchk >= one_week_ago:
+                    recent_task.append(task_detail)
+            except TblTask.DoesNotExist:
+                tasks[curriculum.sub_name].append({
+                    'id': task.id,
+                    'sub_id': task.sub_id,
+                    'task_id': task.task_id,
+                    'task_name': task.task_name,
+                    'grade': "未設定",
+                    'priority': "未設定",
+                    'tag': None,
+                    'grade_choices': TblTask.GRADE_CHOICES,
+                    'priority_choices': TblTask.PRIORITY_CHOICES,
+                    'status': None,
+                    'deadline': None,
+                    'number_1stchk': None,
+                    'get_grade_display': "未設定",
+                    'get_priority_display': "未設定",
+                })
+    return {'subjects': subjects, 'tasks': tasks, 'recent_task': recent_task}

@@ -7,14 +7,14 @@ from django.dispatch import receiver
 class TblSchoolid(models.Model):
     id = models.SmallAutoField(primary_key=True)
     s_id = models.TextField()
-    #s_name = models.charField(max_length=100, default='未設定')
+    s_name = models.CharField(max_length=100, default='未設定')
     s_pass = models.TextField()
     l_login_date = models.DateTimeField(blank=True, null=True)
     update_date = models.DateTimeField(auto_now=True,blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True,blank=True, null=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tbl_schoolid'
     def __str__(self):
         return self.s_id
@@ -38,7 +38,7 @@ class TblUser(models.Model):
     ]
     u_id = models.SmallAutoField(primary_key=True)
     u_name = models.TextField()
-    #user_simei = models.charField(max_length=100,default='未設定')
+    user_simei = models.CharField(max_length=100,default='未設定')
     u_pass = models.TextField()
     s = models.ForeignKey(TblSchoolid, on_delete=models.CASCADE)
     u_auth = models.SmallIntegerField(choices=AUTH_TYPE,default=0)
@@ -49,7 +49,7 @@ class TblUser(models.Model):
     
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'tbl_user'
 
     def __str__(self):
@@ -230,3 +230,20 @@ class TblMaster(models.Model):
     class Meta:
         managed = False
         db_table = 'tbl_master'
+        
+        
+class TblMessage(models.Model):
+    id = models.SmallAutoField(primary_key=True)
+    sender = models.ForeignKey(TblUser, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(TblUser, related_name='received_messages', on_delete=models.CASCADE)
+    message = models.TextField()
+    read = models.BooleanField(default=False)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
+    reg_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'tbl_message'
+
+    def __str__(self):
+        return f'Message from {self.sender} to {self.receiver}'

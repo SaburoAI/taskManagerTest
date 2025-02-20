@@ -25,8 +25,9 @@
                       </tr>
                       {% for student in student_data %}
                       <tr>
-                          <td><a href="{% url 'student_detail' student.u_id %}">
-                            {{ student.u_name }}</a></td>
+                          {% comment %} <td><a href="{% url 'student_detail' student.u_id %}"> {% endcomment %}
+                            <td><a href="{% url 'student_status' student.u_id %}">
+                            {{ student.user_simei }}</a></td>
                           
                           <td>{{ student.school_type }}</td>
                           <td>{{ student.curr_info.achievement_rate }}%</td>

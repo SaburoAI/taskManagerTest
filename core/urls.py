@@ -20,6 +20,8 @@ urlpatterns = [
     path('get-task-attributes/', get_task_attributes, name='get_task_attributes'),
     path('マイページ/', MypageView.as_view(), name='my_page'),
     path('password_change/', TblUserPasswordChangeView.as_view(), name='password_change'),
+    
+    path('生徒カルテ/<str:student_id>/',StudentStatusView.as_view(), name='student_status'),
 
     path("教科一覧/", SubjectHomeView.as_view(), name="subject_list"),
     path("テスト一覧/", TestHomeView.as_view(), name="test_list"),
