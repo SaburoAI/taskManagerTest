@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Register{% endblock %}
+{% block title %}ユーザー登録{% endblock %}
 
 {% block main %}
 <body>
@@ -19,7 +19,7 @@
               <div class="d-flex justify-content-center py-4">
                 <a href="index.html" class="logo d-flex align-items-center w-auto">
                   <img src="{% static 'assets/img/logo.png' %}" alt="">
-                  <span class="d-none d-lg-block">アプリ名</span>
+                  <span class="d-none d-lg-block">ベイスクール　管理システム</span>
                 </a>
               </div><!-- End Logo -->
 
@@ -50,6 +50,12 @@
                       <label for="u_name" class="form-label">ログインID</label>
                       <input type="text" name="u_name" class="form-control" id="username" required>
                       <div class="invalid-feedback">ログインIDを入力してください。</div>
+                    </div>
+
+                    <div class="col-12">
+                      <label for="user_simei" class="form-label">氏名</label>
+                      <input type="text" name="user_simei" class="form-control" id="usersimei" required>
+                      <div class="invalid-feedback">氏名を入力してください。</div>
                     </div>
 
 

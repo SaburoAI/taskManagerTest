@@ -44,7 +44,7 @@ class TblUserPasswordChangeForm(forms.ModelForm):
 class UserForm(forms.ModelForm):
     class Meta:
         model = TblUser
-        fields = ['u_name', 'u_pass', 'u_auth']
+        fields = ['u_name', 'u_pass', 'u_auth', 'user_simei']
 
     def save(self, commit=True):
         user = super().save(commit=False)

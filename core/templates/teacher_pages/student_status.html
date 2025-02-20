@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}生徒カルテ{% endblock %}
+{% block main %}
+<main id="main" class="main">
+
+
+    <div class="pagetitle">
+      
+      <h1>{{user_name}}</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'teacherHome' %}">トップ</a> / 
+            <a href="#">生徒カルテ</a> /
+            <a href="#">{{user_name}}</a>
+            </li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section dashboard">
+      <div class="row">
+
+        <!-- Left side columns -->
+        <div class="col-lg-8">
+          <div class="row">
+            
+            {% comment %} {% include 'teacher_pages/components/_buttons.html'%} {% endcomment %}
+            {% include 'teacher_pages/components/_recentTask.html'%}
+            {% include 'teacher_pages/components/_taskReview.html'%}
+            {% include 'teacher_pages/components/_taskPlan.html'%}
+            
+
+
+        
+
+
+          </div>
+        </div><!-- End Left side columns -->
+
+        <!-- Right side columns -->
+        <div class="col-lg-4">
+        
+        
+        {% include 'teacher_pages/components/_comments.html'%}
+
+
+        </div><!-- End Right side columns -->
+
+      </div>
+    </section>
+</main>
+
+{% endblock %}

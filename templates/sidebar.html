@@ -34,7 +34,7 @@
       </li>
 
 
-    {% if account.u_auth == 1 or account.u_auth == 2 or account.u_auth == 0 %}
+    {% if u_auth == 1 or u_auth == 2 or u_auth == 0 %}
             <li class="nav-item">
                 <a class="nav-link collapsed" href="{% url 'task_add' %}">
                     <i class="bi bi-question-circle"></i>
@@ -44,7 +44,7 @@
     {% endif %}
 
 
-{% if account.u_auth == 1 or account.u_auth == 2 %}
+{% if u_auth == 1 or u_auth == 2 %}
 <li class="nav-item">
   <a class="nav-link collapsed" href="{% url 'task_add_student_list' %}">
       <i class="bi bi-question-circle"></i>
@@ -52,9 +52,10 @@
   </a>
 </li>
 
+
 {% endif %}
 
-      {% if request.session.school_id %}
+{% if u_auth == 2 %}
 
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'subject_list'%}">
