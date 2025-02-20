@@ -231,7 +231,8 @@ class TblMaster(models.Model):
         managed = False
         db_table = 'tbl_master'
         
-        
+"""
+    
 class TblMessage(models.Model):
     id = models.SmallAutoField(primary_key=True)
     sender = models.ForeignKey(TblUser, related_name='sent_messages', on_delete=models.CASCADE)
@@ -247,3 +248,4 @@ class TblMessage(models.Model):
 
     def __str__(self):
         return f'Message from {self.sender} to {self.receiver}'
+"""
