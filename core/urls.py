@@ -22,6 +22,7 @@ urlpatterns = [
     path('password_change/', TblUserPasswordChangeView.as_view(), name='password_change'),
     
     path('生徒カルテ/<str:student_id>/',StudentStatusView.as_view(), name='student_status'),
+    path('add_message/', views.add_message, name='add_message'),
 
     path("教科一覧/", SubjectHomeView.as_view(), name="subject_list"),
     path("テスト一覧/", TestHomeView.as_view(), name="test_list"),

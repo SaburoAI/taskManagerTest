@@ -609,6 +609,8 @@ class StudentStatusView(CustomLoginRequiredMixin, TemplateView):
         ctxt['recent_task'] = recent_task
         review_dict = get_review_list(student_id)
         print(review_dict)
+        message = get_message_list(student_id)
+        ctxt['message'] = message
     
         ctxt['task_info'] = task_info
 
@@ -623,9 +625,34 @@ class StudentStatusView(CustomLoginRequiredMixin, TemplateView):
             except TblUser.DoesNotExist:
                 ctxt['error'] = '指定されたユーザーは存在しません。'
 
-        
+        print(ctxt)
         
         return ctxt
+
+@csrf_exempt
+def add_message(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        message_content = data.get('message')
+        receiver_id = data.get('receiver_id')  # 受信者のIDを取得
+        sender_id = data.get('sender_id')  # 送信者の名前を取得
+        open_or_not = data.get('open_or_not')
+        receiver = TblUser.objects.get(u_id=receiver_id)
+        sender = TblUser.objects.get(u_id=sender_id)
+        print(sender, receiver, message_content, open_or_not)
+
+        new_message = TblMessage(
+            sender=sender,
+            receiver=receiver,
+            message=message_content,
+            open_or_not=open_or_not,
+            reg_date=timezone.now()
+        )
+        new_message.save()
+
+        return JsonResponse({'status': 'success', 'message': 'メッセージが追加されました。'})
+
+    return JsonResponse({'status': 'error', 'message': '無効なリクエストです。'})
     
 
 #講師側ビュー

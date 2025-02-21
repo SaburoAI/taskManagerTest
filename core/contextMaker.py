@@ -402,3 +402,26 @@ def get_task_info(user_id, curriculum_name):
                     'get_priority_display': "未設定",
                 })
     return {'subjects': subjects, 'tasks': tasks, 'recent_task': recent_task}
+
+def get_message_list(student_id):
+    
+    try:
+        user = TblUser.objects.get(u_id=student_id)
+        
+    except TblUser.DoesNotExist:
+        print("User does not exist")
+        return []
+
+    messages = TblMessage.objects.filter(receiver=user).order_by('-reg_date')
+    
+    message_list = []
+    for message in messages:
+        message_list.append({
+            'id': message.id,
+            'sender': message.sender.user_simei,  # ここを変更
+            'message': message.message,
+            'reg_date': message.reg_date,
+            'get_reg_date': DateFormat(message.reg_date).format('Y/m/d H:i'),
+        })
+        
+    return message_list

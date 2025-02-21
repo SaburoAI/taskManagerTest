@@ -231,14 +231,15 @@ class TblMaster(models.Model):
         managed = False
         db_table = 'tbl_master'
         
-"""
-    
+
+
 class TblMessage(models.Model):
     id = models.SmallAutoField(primary_key=True)
     sender = models.ForeignKey(TblUser, related_name='sent_messages', on_delete=models.CASCADE)
     receiver = models.ForeignKey(TblUser, related_name='received_messages', on_delete=models.CASCADE)
     message = models.TextField()
     read = models.BooleanField(default=False)
+    open_or_not = models.BooleanField(default=False)
     update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
@@ -248,4 +249,5 @@ class TblMessage(models.Model):
 
     def __str__(self):
         return f'Message from {self.sender} to {self.receiver}'
-"""
+    
+

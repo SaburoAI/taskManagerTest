@@ -1,31 +1,170 @@
-          <!-- News & Updates Traffic -->
-          <div class="card">
-            <div class="filter">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                <li class="dropdown-header text-start">
-                  <h6>フィルター</h6>
-                </li>
+<!-- News & Updates Traffic -->
+<div class="card">
+  <div class="filter">
+      <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+      <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+          <li class="dropdown-header text-start">
+              <h6>フィルター</h6>
+          </li>
+          <li><a class="dropdown-item" href="#" onclick="filterMessages('week')">今週</a></li>
+          <li><a class="dropdown-item" href="#" onclick="filterMessages('month')">今月</a></li>
+          <li><a class="dropdown-item" href="#" onclick="filterMessages('all')">全期間</a></li>
+      </ul>
+      <a class="icon" href="#" data-bs-toggle="modal" data-bs-target="#addMessageModal"><i class="bi bi-plus"></i></a>
+  </div>
 
-                <li><a class="dropdown-item" href="#">今週</a></li>
-                <li><a class="dropdown-item" href="#">今月</a></li>
-                <li><a class="dropdown-item" href="#">今年</a></li>
-              </ul>
+  <div class="card-body pb-0">
+      <h5 class="card-title">メッセージ <span id="filter-title">| 今週</span></h5>
+
+      <div class="news" id="message-list">
+          {% for msg in message %}
+          <div class="post-item clearfix" data-date="{{ msg.get_reg_date }}">
+              <img src="assets/img/news-1.jpg" alt="">
+              <h4><a href="#" data-bs-toggle="modal" data-bs-target="#messageModal{{ msg.id }}">{{ msg.sender }}</a></h4>
+              <p>{{ msg.message|truncatechars:10 }}</p>
+              <p><small>{{ msg.get_reg_date }}</small></p>
+          </div>
+
+          <!-- Modal -->
+          <div class="modal fade" id="messageModal{{ msg.id }}" tabindex="-1" aria-labelledby="messageModalLabel{{ msg.id }}" aria-hidden="true">
+              <div class="modal-dialog">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title" id="messageModalLabel{{ msg.id }}">{{ msg.sender }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                          {{ msg.message }}
+                      </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          {% endfor %}
+      </div><!-- End sidebar recent posts-->
+
+  </div>
+</div><!-- End News & Updates -->
+
+<!-- Add Message Modal -->
+<div class="modal fade" id="addMessageModal" tabindex="-1" aria-labelledby="addMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addMessageModalLabel">メッセージを追加</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
-            <div class="card-body pb-0">
-              <h5 class="card-title">コメント <span>| 今週</span></h5>
-
-              <div class="news">
-                <div class="post-item clearfix">
-                  <img src="assets/img/news-1.jpg" alt="">
-                  <h4><a href="#">講師名</a></h4>
-                  <p>コメント</p>
-                </div>
-
-                
-
-              </div><!-- End sidebar recent posts-->
-
+            <div class="modal-body">
+                <form id="addMessageForm">
+                    <div class="mb-3">
+                        <p>送信者: {{ u_simei }}</p>
+                        <input type="hidden" id="senderId" value="{{ u_id }}">
+                        <label for="messageContent" class="form-label">メッセージ</label>
+                        <textarea class="form-control" id="messageContent" rows="3" required></textarea>
+                    </div>
+                    {% comment %} <div class="mb-3">
+                        <label for="messageRead" class="form-label">既読</label>
+                        <input type="checkbox" class="form-check-input" id="messageRead">
+                    </div> {% endcomment %}
+                    <div class="mb-3">
+                        <label for="messageOpenOrNot" class="form-label">生徒に公開</label>
+                        <input type="checkbox" class="form-check-input" id="messageOpenOrNot">
+                    </div>
+                    <button type="submit" class="btn btn-primary">送信</button>
+                </form>
             </div>
-          </div><!-- End News & Updates -->
+        </div>
+    </div>
+</div>
+
+<script>
+function filterMessages(filter) {
+    const messageList = document.getElementById('message-list');
+    const messages = messageList.getElementsByClassName('post-item');
+    const now = new Date();
+    let filterTitle = '今週';
+
+    for (let i = 0; i < messages.length; i++) {
+        const messageDate = new Date(messages[i].getAttribute('data-date'));
+        let showMessage = false;
+
+        if (filter === 'week') {
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(now.getDate() - 7);
+            showMessage = messageDate >= oneWeekAgo && messageDate <= now;
+        } else if (filter === 'month') {
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(now.getMonth() - 1);
+            showMessage = messageDate >= oneMonthAgo && messageDate <= now;
+            filterTitle = '今月';
+        } else if (filter === 'all') {
+            showMessage = true;
+            filterTitle = '全期間';
+        }
+
+        messages[i].style.display = showMessage ? 'block' : 'none';
+    }
+
+    document.getElementById('filter-title').innerText = `| ${filterTitle}`;
+}
+
+document.getElementById('addMessageForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const message = document.getElementById('messageContent').value;
+    {% comment %} const read = document.getElementById('messageRead').checked; {% endcomment %}
+    const openOrNot = document.getElementById('messageOpenOrNot').checked;
+    const senderId = document.getElementById('senderId').value;
+    const receiverId = '{{ student_id }}';  // 受信者のIDを設定
+
+    console.log(message,  openOrNot, senderId, receiverId);
+
+    fetch('/add_message/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')  // CSRFトークンを取得
+        },
+        body: JSON.stringify({
+            message: message,
+            {% comment %} read: read, {% endcomment %}
+            open_or_not: openOrNot,
+            sender_id: senderId,
+            receiver_id: receiverId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // メッセージが追加された場合の処理
+            alert('メッセージが追加されました。');
+        } else {
+            // エラーが発生した場合の処理
+            alert('メッセージの追加に失敗しました。');
+        }
+    });
+
+    // フォームをリセット
+    document.getElementById('addMessageForm').reset();
+    // モーダルを閉じる
+    const addMessageModal = new bootstrap.Modal(document.getElementById('addMessageModal'));
+    addMessageModal.hide();
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // このcookie文字列が名前で始まるかどうかを確認します
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
