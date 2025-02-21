@@ -239,6 +239,7 @@ class TblMessage(models.Model):
     receiver = models.ForeignKey(TblUser, related_name='received_messages', on_delete=models.CASCADE)
     message = models.TextField()
     read = models.BooleanField(default=False)
+    open_or_not = models.BooleanField(default=False)
     update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
     reg_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
