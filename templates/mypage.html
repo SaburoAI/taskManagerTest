@@ -59,7 +59,7 @@
                 {% if u_auth == 2 %}
                 <div class="row">
                   <div class="col-lg-3 col-md-4 label">ユーザーID</div>
-                  <div class="col-lg-9 col-md-8">{{s_id}}</div>
+                  <div class="col-lg-9 col-md-8">{{school_account}}</div>
                 </div>
                 {% else %}
                 <div class="row">
@@ -109,7 +109,7 @@
                 <div class="row mb-3">
                     <label for="fullName" class="col-md-4 col-lg-3 col-form-label">ユーザーID</label>
                     <div class="col-md-8 col-lg-9">
-                      <input name="fullName" type="text" class="form-control" id="u_name" value="{{s_id}}">
+                      <input name="fullName" type="text" class="form-control" id="u_name" value="{{school_account}}">
                     </div>
                   </div>
                 {% else %}

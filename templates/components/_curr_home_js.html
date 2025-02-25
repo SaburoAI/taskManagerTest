@@ -1,0 +1,386 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchButton = document.getElementById('searchButton');
+        const memberDropdown = document.getElementById('memberDropdown');
+    
+        /*
+        searchButton.addEventListener('click', function() {
+            const query = document.getElementById('memberSearch').value;
+            const schoolId = "{{ school_id }}"; // Djangoテンプレートからschool_idを取得
+            if (query.length > 0) {
+                fetch(`/search-members/?q=${query}&school_id=${schoolId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        memberDropdown.innerHTML = '<option selected>メンバーを選択...</option>';
+                        data.forEach(member => {
+                            const option = document.createElement('option');
+                            option.value = member.u_id;
+                            option.textContent = `ID: ${member.u_id}, 名前: ${member.u_name}`;
+                            memberDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+        */
+    
+        const addMemberForm = document.getElementById('addMemberForm');
+        addMemberForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const selectedMemberId = memberDropdown.value;
+            const curriculumName = "{{ curriculum_name }}"; // Djangoテンプレートからcurriculum_nameを取得
+            const schoolId = "{{ school_id }}"; // Djangoテンプレートからschool_idを取得
+            const deadline = document.getElementById('deadline').value;
+
+            if (selectedMemberId !== 'メンバーを選択...') {
+                fetch('/add-member-to-task/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        user_id: selectedMemberId,
+                        curriculum_name: curriculumName,
+                        school_id: schoolId,
+                        deadline: deadline
+                    })
+                    
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('メンバーが正常に追加されました');
+                        //location.reload();
+                    } else {
+                        alert('エラーが発生しました: ' + data.message);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      const subjectSelect = document.getElementById('subject-select');
+      const taskTableBody = document.getElementById('task-table-body');
+      const rows = taskTableBody.querySelectorAll('tr');
+      const autoFillButton = document.getElementById('auto-fill-button');
+      const autoFillModal = new bootstrap.Modal(document.getElementById('autoFillModal'));
+      const teacherSelect = document.getElementById('teacher-select');
+      const bulkAddConfirmButton = document.getElementById('bulk-add-confirm');
+      const saveButton = document.getElementById('save-button');
+      const importTaskButton = document.getElementById('import-task-button');
+      const bulkAddButton = document.getElementById('bulk-add-button');
+
+      document.getElementById('bulk-add-textarea').addEventListener('keydown', function(e) {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = this.selectionStart;
+            const end = this.selectionEnd;
+    
+            // Insert tab character at the cursor position
+            this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+    
+            // Move the cursor to the right position
+            this.selectionStart = this.selectionEnd = start + 1;
+        }
+    });
+
+      if (autoFillButton) {
+        autoFillButton.addEventListener('click', function() {
+            autoFillModal.show();
+        });
+    }
+
+
+
+
+  
+      // ローカルストレージから選択された値を復元
+      const savedSubject = localStorage.getItem('selectedSubject');
+      if (savedSubject) {
+          subjectSelect.value = savedSubject;
+      }
+  
+      // 選択された値をローカルストレージに保存
+      subjectSelect.addEventListener('change', function() {
+          localStorage.setItem('selectedSubject', subjectSelect.value);
+      });
+  
+      if (saveButton) {
+          saveButton.addEventListener('click', handleSaveTasks);
+      }
+  
+      if (importTaskButton) {
+          importTaskButton.addEventListener('click', handleImportTasks);
+      }
+  
+      if (bulkAddButton) {
+          bulkAddButton.addEventListener('click', handleBulkAdd);
+      }
+  
+      if (autoFillButton) {
+          autoFillButton.addEventListener('click', handleAutoFill);
+      }
+      
+
+      function updateRowIndices() {
+          const visibleRows = Array.from(taskTableBody.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
+          visibleRows.forEach((row, index) => {
+              row.querySelector('.index-cell').innerText = index + 1;
+          });
+      }
+  
+      function filterRowsBySubject() {
+          const selectedSubject = subjectSelect.value;
+          rows.forEach(row => {
+              if (selectedSubject === '' || row.getAttribute('data-subject') === selectedSubject) {
+                  row.style.display = '';
+              } else {
+                  row.style.display = 'none';
+              }
+          });
+          updateRowIndices();
+      }
+  
+      function handleTaskNameBlur(event) {
+          const taskName = event.target.innerText;
+          const row = event.target.closest('tr');
+          const tagCell = row.querySelector('.tag-cell');
+          const gradeSelect = row.querySelector('.grade-select');
+          const prioritySelect = row.querySelector('.priority-select');
+  
+          if (!tagCell || !gradeSelect || !prioritySelect) {
+              console.error('Required elements not found in the row');
+              return;
+          }
+  
+      }
+  
+      function handleBulkAdd() {
+          const bulkAddTextarea = document.getElementById('bulk-add-textarea');
+          const taskLines = bulkAddTextarea.value.split('\n').filter(line => line.trim() !== '');
+          //console.log(taskLines);
+  
+          taskLines.forEach((line) => {
+            const [tag, taskName, priority, grade] = line.split('\t').map(item => item.trim());
+    
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="index-cell"></td>
+                <td class="manage-id">-1</td>
+                <td class="subject-cell">${subjectSelect.value}</td>
+                <td class="tag-cell" contenteditable="true">${tag || '未設定'}</td>
+                <td class="task-name-cell" contenteditable="true">${taskName}</td>
+                <td>
+                    <select class="form-select grade-select">
+                        <option value="1" ${grade === 'A' ? 'selected' : ''}>A</option>
+                        <option value="2" ${grade === 'B' ? 'selected' : ''}>B</option>
+                        <option value="3" ${grade === 'C' ? 'selected' : ''}>C</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="form-select priority-select">
+                        <option value="1" ${priority === 'A' ? 'selected' : ''}>A</option>
+                        <option value="2" ${priority === 'B' ? 'selected' : ''}>B</option>
+                        <option value="3" ${priority === 'C' ? 'selected' : ''}>C</option>
+                    </select>
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm delete-row">削除</button>
+                </td>
+            `;
+            taskTableBody.appendChild(newRow);
+        });
+       
+  
+          // モーダルを閉じる
+          const bulkAddModal = document.getElementById('bulkAddModal');
+          const modal = bootstrap.Modal.getInstance(bulkAddModal);
+          modal.hide();
+  
+          // テキストエリアをクリア
+          bulkAddTextarea.value = '';
+  
+          // 行番号を更新
+          updateRowIndices();
+      }
+  
+      function handleSaveTasks() {
+          const rows = taskTableBody.querySelectorAll('tr');
+          const tasks = [];
+          const selectedSubject = subjectSelect.value;
+  
+          rows.forEach(row => {
+              const task = {
+                  user_name: '{{ u_name }}',
+                  user_id: '{{ u_id }}',
+                  s_id: '{{ s_id }}',
+                  curr_name: '{{ curriculum_name }}',
+                  management_id: row.querySelector('.manage-id').innerText,
+                  subject: row.querySelector('.subject-cell').innerText,
+                  tag: row.querySelector('.tag-cell').innerText,
+                  task_id: parseInt(row.querySelector('.index-cell').innerText, 10),
+                  task_name: row.querySelector('.task-name-cell').innerText,
+                  grade: row.querySelector('.grade-select').value,
+                  priority: row.querySelector('.priority-select').value
+              };
+              tasks.push(task);
+          });
+  
+          fetch('/save-tasks/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ tasks: tasks })
+          })
+          .then(response => {
+              if (!response.ok) {
+                  throw new Error('Network response was not ok');
+              }
+              return response.json();
+          })
+          .then(data => {
+              if (data.status === 'success') {
+                  alert('タスクが正常に保存されました');
+                  location.reload(); 
+              } else {
+                  alert('エラーが発生しました: ' + data.message);
+              }
+          })
+          .catch(error => {
+              console.error('Error:', error);
+              alert('エラーが発生しました: ' + error.message);
+          });
+      }
+      
+
+
+      function handleAutoFill() {
+          // テンプレ読み込み時の処理
+          const taskNameCells = document.querySelectorAll('.task-name-cell');
+          taskNameCells.forEach(cell => {
+              const taskName = cell.innerText;
+              const row = cell.closest('tr');
+              const tagCell = row.querySelector('.tag-cell');
+              const gradeSelect = row.querySelector('.grade-select');
+              const prioritySelect = row.querySelector('.priority-select');
+  
+              if (!tagCell || !gradeSelect || !prioritySelect) {
+                  console.error('Required elements not found in the row');
+                  return;
+              }
+  
+          });
+      }
+  
+      // イベントリスナーの設定
+      subjectSelect.addEventListener('change', filterRowsBySubject);
+      if (autoFillButton) {
+          autoFillButton.addEventListener('click', handleAutoFill);
+      }
+      if (bulkAddConfirmButton) {
+          bulkAddConfirmButton.addEventListener('click', handleBulkAdd);
+      }
+      if (saveButton) {
+          saveButton.addEventListener('click', handleSaveTasks);
+      }
+  
+      // 削除ボタンのイベントリスナーを設定
+      taskTableBody.addEventListener('click', function(event) {
+          if (event.target.classList.contains('delete-row')) {
+              const row = event.target.closest('tr');
+              row.remove();
+              updateRowIndices();
+          }
+      });
+  
+      // ページ読み込み時に最初の教科を選択してフィルタリング
+      filterRowsBySubject();
+  });
+  
+  //タスクのエクスポート
+  document.addEventListener('DOMContentLoaded', function() {
+    const exportTaskButton = document.getElementById('export-task-button');
+    const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+    const exportTextarea = document.getElementById('export-textarea');
+    const copyToClipboardButton = document.getElementById('copy-to-clipboard');
+    const subjectSelect = document.getElementById('subject-select');
+
+    if (exportTaskButton) {
+        exportTaskButton.addEventListener('click', handleExportTasks);
+    }
+
+    if (copyToClipboardButton) {
+        copyToClipboardButton.addEventListener('click', handleCopyToClipboard);
+    }
+
+    function handleExportTasks() {
+        const selectedSubject = subjectSelect.value;
+        const rows = document.querySelectorAll('#task-table-body tr');
+        let exportData = '';
+
+        rows.forEach(row => {
+            if (row.getAttribute('data-subject') === selectedSubject) {
+                const tagCell = row.querySelector('.tag-cell');
+                const taskNameCell = row.querySelector('.task-name-cell');
+                const gradeSelect = row.querySelector('.grade-select');
+                const prioritySelect = row.querySelector('.priority-select');
+
+                const rowData = [
+                    tagCell ? tagCell.innerText : '',
+                    taskNameCell ? taskNameCell.innerText : '',
+                    gradeSelect ? gradeSelect.options[gradeSelect.selectedIndex].text : '',
+                    prioritySelect ? prioritySelect.options[prioritySelect.selectedIndex].text : ''
+                ].join('\t');
+
+                exportData += rowData + '\n';
+            }
+        });
+
+        exportTextarea.value = exportData;
+        exportModal.show();
+    }
+
+    function handleCopyToClipboard() {
+        exportTextarea.select();
+        document.execCommand('copy');
+        alert('クリップボードにコピーされました');
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    // 削除ボタンのクリックイベントを処理
+    document.querySelectorAll('.delete-task-button').forEach(function (button) {
+      button.addEventListener('click', function () {
+        var taskId = this.getAttribute('data-task-id');
+        var tblTaskId = this.getAttribute('data-tbl-task-id');
+        console.log(taskId, tblTaskId);
+        if (confirm('このタスクを削除してもよろしいですか？')) {
+          fetch("{% url 'delete_task' %}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ task_id: taskId, tbl_task_id: tblTaskId})
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              // タスク行を削除
+              this.closest('tr').remove();
+            } else {
+              alert('タスクの削除に失敗しました。');
+            }
+          })
+          .catch(error => console.error('Error:', error));
+        }
+      });
+    });
+  });
+
+    </script>

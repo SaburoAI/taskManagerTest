@@ -1,0 +1,99 @@
+<!-- Top Selling -->
+<div class="col-12">
+  <div class="card top-selling overflow-auto">
+
+      <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                  <h6>メニュー</h6>
+              </li>
+              <li><a class="dropdown-item" href="#">保存</a></li>
+          </ul>
+      </div>
+
+      <div class="card-body pb-0">
+          <h5 class="card-title">すべてのタスク<span>| 今週</span></h5>
+
+          <table class="table table-borderless" id="taskTable">
+              <thead>
+                  <tr>
+                      <th scope="col">教科名</th>
+                      <th scope="col">タスク名</th>
+                      <th scope="col">チェック日</th>
+                      <th scope="col">重要度</th>
+                      <th scope="col">優先度</th>
+                      <th scope="col">ステータス</th>
+                      <th scope="col">タグ</th>
+                      <th scope="col">期限</th>
+                      <th scope="col">1回目の復習日</th>
+                      <th scope="col">2回目のチェック日</th>
+                      <th scope="col">3回目のチェック日</th>
+                      <th scope="col">4回目のチェック日</th>
+                      <th scope="col">5回目のチェック日</th>
+                      <th scope="col">6回目のチェック日</th>
+                  </tr>
+                  <tr>
+                      <th><input type="text" id="subNameFilter" onkeyup="filterTasks(0)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="taskNameFilter" onkeyup="filterTasks(1)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chkDateFilter" onkeyup="filterTasks(2)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="gradeFilter" onkeyup="filterTasks(3)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="priorityFilter" onkeyup="filterTasks(4)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="statusFilter" onkeyup="filterTasks(5)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="tagFilter" onkeyup="filterTasks(6)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="deadlineFilter" onkeyup="filterTasks(7)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="review1Filter" onkeyup="filterTasks(8)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chk2Filter" onkeyup="filterTasks(9)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chk3Filter" onkeyup="filterTasks(10)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chk4Filter" onkeyup="filterTasks(11)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chk5Filter" onkeyup="filterTasks(12)" placeholder="フィルター" class="form-control"></th>
+                      <th><input type="text" id="chk6Filter" onkeyup="filterTasks(13)" placeholder="フィルター" class="form-control"></th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for task in all_task %}
+                  <tr>
+                      <th scope="row">{{ task.sub_name }}</th>
+                      <td><a href="#" class="text-primary fw-bold">{{ task.task_name }}</a></td>
+                      <td>{{ task.number_1stchk|date:"Y/m/d" }}</td>
+                      <td class="fw">{{ task.get_grade_display }}</td>
+                      <td>{{ task.get_priority_display }}</td>
+                      <td>{{ task.get_status_display }}</td>
+                      <td>{{ task.tag }}</td>
+                      <td>{{ task.deadline|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_1streview|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_2ndchk|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_3rdchk|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_4thchk|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_5thchk|date:"Y/m/d" }}</td>
+                      <td>{{ task.number_6thchk|date:"Y/m/d" }}</td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+
+      </div>
+
+  </div>
+</div><!-- End Top Selling -->
+
+<script>
+function filterTasks(columnIndex) {
+  var input, filter, table, tr, td, i, txtValue;
+  input = document.getElementsByTagName("input")[columnIndex];
+  filter = input.value.toUpperCase();
+  table = document.getElementById("taskTable");
+  tr = table.getElementsByTagName("tr");
+
+  for (i = 2; i < tr.length; i++) { // Skip the first two rows (header and filter row)
+      tr[i].style.display = "none";
+      td = tr[i].getElementsByTagName("td")[columnIndex];
+      if (td) {
+          txtValue = td.textContent || td.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              tr[i].style.display = "";
+          }
+      }
+  }
+}
+</script>

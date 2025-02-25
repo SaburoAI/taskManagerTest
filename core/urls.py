@@ -14,18 +14,30 @@ urlpatterns = [
     path('テスト結果/<int:test_id>/<int:student_id>/', get_results, name='get_results_with_student'),
     path('講師ホーム/', TeacherHomeView.as_view(), name="teacherHome"),
     path('生徒一覧/', TaskAddStuListView.as_view(), name="task_add_student_list"),
-    path('タスクの期限追加/<str:student_name>/', TeacherTaskAddView.as_view(), name="teacher_task_add"),
+    
+    path('タスクの期限追加/<int:student_u_id>/', TeacherTaskAddView.as_view(), name="teacher_task_add"),
+    path('add_task_deadline/', views.add_task_deadline, name='add_task_deadline'),
+    
     path('ライブラリ/', LibraryView.as_view(), name='library'),
     path('カリキュラム/<str:curriculum_name>/', CurrHomeView.as_view(), name='curriculum_home'),
-    path('get-task-attributes/', get_task_attributes, name='get_task_attributes'),
+    path('get_task_attributes/', get_task_attributes, name='get_task_attributes'),
+    path('テスト/<str:curriculum_name>/', TestMenuView.as_view(), name='test_menu'),
+    path('delete_task/', delete_task, name='delete_task'),
+
+    
     path('マイページ/', MypageView.as_view(), name='my_page'),
     path('password_change/', TblUserPasswordChangeView.as_view(), name='password_change'),
-    
+
     path('生徒カルテ/<str:student_id>/',StudentStatusView.as_view(), name='student_status'),
     path('add_message/', views.add_message, name='add_message'),
+    path('update_tasks/', update_tasks, name='update_tasks'),
+    path('save_oral_check/', save_oral_check, name='save_oral_check'),
+
 
     path("教科一覧/", SubjectHomeView.as_view(), name="subject_list"),
     path("テスト一覧/", TestHomeView.as_view(), name="test_list"),
+    path('submit_answers/', submit_answers, name='submit_answers'),
+
 
     path('save_subjects/', SaveSubjectsView.as_view(), name='save_subjects'),
     path('save_tests/', SaveTestsView.as_view(), name='save_tests'),

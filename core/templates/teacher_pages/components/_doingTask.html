@@ -1,0 +1,127 @@
+<!-- Top Selling -->
+<div class="col-12">
+  <div class="card top-selling overflow-auto">
+
+      <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+          </ul>
+      </div>
+
+      <div class="card-body pb-0">
+          <h5 class="card-title">実行中タスク<span>| 今週</span></h5>
+
+          <table class="table table-borderless">
+              <thead>
+                  <tr>
+                      <th class="manage-id">管理ID</th>
+                      <th scope="col">教科名</th>
+                      <th scope="col">タスク名</th>
+                      <th scope="col">期限</th>
+                      <th scope="col">重要度</th>
+                      <th scope="col">優先度</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for task in doing_task %}
+                  <tr>
+                      <th class="manage-id">{{ task.tbl_task_id }}</th>
+                      <th scope="row">{{ task.sub_name }}</th>
+                      <td><a href="#" class="text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#oralCheckModal" data-task-id="{{ task.tbl_task_id }}">{{ task.task_name }}</a></td>
+                      <td>{{ task.deadline|date:"Y/m/d" }}</td>
+                      <td class="fw">{{ task.get_grade_display }}</td>
+                      <td>{{ task.get_priority_display }}</td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+
+      </div>
+
+  </div>
+</div><!-- End Top Selling -->
+
+<!-- Oral Check Modal -->
+<div class="modal fade" id="oralCheckModal" tabindex="-1" aria-labelledby="oralCheckModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="oralCheckModalLabel">口頭チェック</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <form id="oralCheckForm">
+                  <div class="mb-3">
+                      <label for="taskName" class="form-label">タスク名</label>
+                      <input type="text" class="form-control" id="taskName" readonly>
+                  </div>
+                  <div class="mb-3">
+                      <label for="oralCheckResult" class="form-label">結果</label>
+                      <select class="form-control" id="oralCheckResult">
+                          <option value="合格">合格</option>
+                          <option value="不合格">不合格</option>
+                      </select>
+                  </div>
+                  <input type="hidden" id="taskId">
+                  <button type="submit" class="btn btn-primary">保存</button>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var oralCheckModal = document.getElementById('oralCheckModal');
+  oralCheckModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var taskId = button.getAttribute('data-task-id');
+      var taskName = button.textContent;
+      var taskIdInput = oralCheckModal.querySelector('#taskId');
+      var taskNameInput = oralCheckModal.querySelector('#taskName');
+      taskIdInput.value = taskId;
+      taskNameInput.value = taskName;
+  });
+
+  var oralCheckForm = document.getElementById('oralCheckForm');
+  oralCheckForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var taskId = document.getElementById('taskId').value;
+      var oralCheckResult = document.getElementById('oralCheckResult').value;
+
+      fetch('/save_oral_check/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+              task_id: taskId,
+              result: oralCheckResult
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert('口頭チェックが保存されました');
+              location.reload();
+          } else {
+              alert('口頭チェックの保存に失敗しました');
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+      });
+
+      var modal = bootstrap.Modal.getInstance(oralCheckModal);
+      modal.hide();
+  });
+});
+</script>

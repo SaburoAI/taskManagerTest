@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}確認テスト{% endblock %}
+
+{% block main %}
+<main id="main" class="main">
+  <div class="pagetitle d-flex justify-content-between align-items-center">
+    <div>
+        <h1>{{curriculum_name}}</h1>
+        {% if account.u_auth == 1 %}
+        <a href="{% url 'curriculum_detail' curriculum_name %}">一</a>
+        {% endif %}
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'teacherHome' %}">トップ/</a>
+                    <a href="{% url 'library' %}">ライブラリー/</a>
+                    <a href="{% url 'curriculum_home' curriculum_name %}" >{{curriculum_name}}</a>
+                    
+                </li>
+            </ol>
+        </nav>
+    </div>
+  </div>
+
+  <section class="section dashboard">
+    <div class="row">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-title"></h6>
+          <!-- Bordered Tabs -->
+          <ul class="nav nav-tabs nav-tabs-bordered" id="borderedTab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#bordered-task" type="button" role="tab" aria-controls="home" aria-selected="true">
+                テスト（試験版）
+              </button>
+            </li>
+          </ul>
+          <div class="tab-content pt-2" id="borderedTabContent">
+            <div class="tab-pane fade show active" id="bordered-task" role="tabpanel" aria-labelledby="home-tab">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <h5 class="card-title">タスク一覧</h5>
+                </div>
+
+                {% include 'components/_curr_home_modal.html'%}
+
+                <div class="mb-3">
+                  <label for="subject-select" class="form-label">教科を選択</label>
+                  <select id="subject-select" class="form-select">
+                    {% for subject in subjects %}
+                    <option value="{{ subject }}" {% if forloop.first %}selected{% endif %}>{{ subject }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th class ="id-column">ID</th>
+                      <th class ="subject-cell">教科</th>
+                      <th>タグ</th>
+                      <th>タスク名</th>
+                      <th>テスト</th>
+
+                      <!-- 必要に応じて他のフィールドを追加 -->
+                    </tr>
+                  </thead>
+                  <tbody id="task-table-body">
+                    {% for subject, task_list in tasks.items %}
+                    {% for task in task_list %}
+                    <tr data-subject="{{ subject }}">
+                      <td class="index-cell id-column">{{ forloop.counter }}</td>
+                      <td class ="manage-id">{{ task.id}}</td>
+                      <td class="subject-cell" value="{{task.sub_id}}">{{ subject }}</td>
+                      <td class="tag-cell" contenteditable="true">{{ task.tag }}</td>
+                      <td class="task-name-cell" contenteditable="true" value="{{task.task_id}}">{{ task.task_name }}</td>
+                      <td>
+                        {% if subject == "数学" %}
+                        <button type="button" class="btn btn-outline-success add-button" data-bs-toggle="modal" data-bs-target="#testModal" data-test-id="{{ forloop.counter }}" data-task-id="{{ task.Tbltask_id }}">
+                          テスト
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-outline-secondary" disabled>
+                          準備中
+                        </button>
+                        {% endif %}
+                      </td>
+                      <!-- 必要に応じて他のフィールドを追加 -->
+                    </tr>
+                    {% endfor %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {% include 'components/_curr_home_js.html'%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- テストモーダル -->
+  <div class="modal fade" id="testModal" tabindex="-1" aria-labelledby="testModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="testModalLabel">テスト</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <img id="testImage" src="" alt="テスト画像" class="img-fluid mb-3">
+          <div id="answer-inputs" class="form-group">
+            <!-- 答えの入力欄がここに動的に追加されます -->
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+          <button type="button" class="btn btn-primary" id="submitAnswers">送信</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var testId; // testId をここで宣言
+      var taskId; // taskId をここで宣言
+      var testModal = document.getElementById('testModal');
+      testModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        testId = button.getAttribute('data-test-id'); // testId を取得
+        taskId = button.getAttribute('data-task-id'); // taskId を取得
+        var testImage = document.getElementById('testImage');
+        testImage.src = "{% static 'img/test/math/' %}" + testId + ".png";
+
+        var answerInputs = document.getElementById('answer-inputs');
+        answerInputs.innerHTML = ''; // 既存の入力欄をクリア
+
+        var inputCounts = {
+          1: 3,
+          2: 4,
+          3: 7,
+          4: 3,
+          5: 6,
+          6: 3,
+          7: 5,
+          8: 5
+        };
+
+        var count = inputCounts[testId] || 0;
+        for (var i = 0; i < count; i++) {
+          var inputGroup = document.createElement('div');
+          inputGroup.className = 'mb-3';
+
+          var label = document.createElement('label');
+          label.className = 'form-label';
+          label.textContent = '答え ' + (i + 1);
+
+          var select = document.createElement('select');
+          select.className = 'form-select';
+          select.name = 'answer' + (i + 1);
+
+          for (var j = 0; j <= 9; j++) {
+            var option = document.createElement('option');
+            option.value = j;
+            option.textContent = j;
+            select.appendChild(option);
+          }
+
+          inputGroup.appendChild(label);
+          inputGroup.appendChild(select);
+          answerInputs.appendChild(inputGroup);
+        }
+      });
+
+      document.getElementById('submitAnswers').addEventListener('click', function () {
+        var answers = [];
+        var selects = document.querySelectorAll('#answer-inputs select');
+        selects.forEach(function (select) {
+          answers.push(select.value);
+        });
+
+        fetch("{% url 'submit_answers' %}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({ test_id: testId, task_id: taskId, answers: answers }) // testId と taskId を含めて送信
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('採点結果: ' + data.result);
+          var testModal = document.getElementById('testModal');
+          var modal = bootstrap.Modal.getInstance(testModal);
+          modal.hide();
+        })
+        .catch(error => console.error('Error:', error));
+      });
+    });
+  </script>
+</main>
+{% endblock %}
