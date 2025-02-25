@@ -29,7 +29,7 @@
                 <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#bordered-curr" type="button" role="tab" aria-controls="home" aria-selected="true">カリキュラム</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#bordered-test" type="button" role="tab" aria-controls="profile" aria-selected="false">テスト（開発中）</button>
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#bordered-test" type="button" role="tab" aria-controls="profile" aria-selected="false">テスト（試験版）</button>
               </li>
 
             </ul>
@@ -71,7 +71,38 @@
               </div>
               
               <div class="tab-pane fade" id="bordered-test" role="tabpanel" aria-labelledby="profile-tab">
-                現在開発中です
+                <div class="card-body">
+                  <h5 class="card-title"></h5>
+    
+                  <!-- List group with Advanced Contents -->
+                  <div class="list-group">
+                    
+                    {% if u_auth == 0 or u_auth == -1 %}
+                    
+                    <a href="{% url 'test_menu' curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{curr_name}}</h5>
+                        <small></small>
+                      </div>
+                  
+                    </a>
+                    {% else %}
+
+                    {% for curriculum in curriculums %}
+                    <a href="{% url 'test_menu' curriculum.curr_name %}" class="list-group-item list-group-item-action" aria-current="true">
+                      <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{curriculum.curr_name}}</h5>
+                        <small></small>
+                      </div>
+                  
+                    </a>
+                    {% endfor %}
+
+
+                    {% endif %}
+                  </div><!-- End List group Advanced Content -->
+                 
+                </div>
               </div>
              
             </div><!-- End Bordered Tabs -->

@@ -1,47 +1,129 @@
-            <!-- Top Selling -->
-            <div class="col-12">
-                <div class="card top-selling overflow-auto">
-  
-                  <div class="filter">
-                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                      <li class="dropdown-header text-start">
-                        <h6>Filter</h6>
-                      </li>
-  
-                      <li><a class="dropdown-item" href="#">Today</a></li>
-                      <li><a class="dropdown-item" href="#">This Month</a></li>
-                      <li><a class="dropdown-item" href="#">This Year</a></li>
-                    </ul>
+<!-- Top Selling -->
+<div class="col-12">
+  <div class="card top-selling overflow-auto">
+
+      <div class="filter">
+          <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+              </li>
+
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+          </ul>
+      </div>
+
+      <div class="card-body pb-0">
+          <h5 class="card-title">おすすめタスク</h5>
+
+          <table class="table table-borderless">
+              <thead>
+                  <tr>
+                      <th scope="col">教科名</th>
+                      <th scope="col">タグ名</th>
+                      <th scope="col">タスク数</th>
+                      <th class="query">クエリ</th>
+                      <th scope="col">追加</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for item in recommended_task %}
+                  <tr>
+                      <td>{{ item.sub_name }}</td>
+                      <td>{{ item.tag }}</td>
+                      <td>{{ item.task_count }}</td>
+                      <td class="query">
+                          {{ item.tasks }}
+                      </td>
+                      <td>
+                          <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#dateModal" data-tag="{{ item.tag }}" data-tasks="tasks-{{ forloop.counter }}">追加</button>
+                          <script type="application/json" id="tasks-{{ forloop.counter }}">
+                              {{ item.tasks|safe }}
+                          </script>
+                      </td>
+                  </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+
+      </div>
+
+  </div>
+</div><!-- End Top Selling -->
+
+<!-- Date Modal -->
+<div class="modal fade" id="dateModal" tabindex="-1" aria-labelledby="dateModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="dateModalLabel">タスクの期限を入力</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <form id="dateForm">
+                  <div class="mb-3">
+                      <label for="dateInput" class="form-label">日付</label>
+                      <input type="date" class="form-control" id="dateInput" required>
                   </div>
-  
-                  <div class="card-body pb-0">
-                    <h5 class="card-title">おすすめタスク<span>| 今週</span></h5>
-  
-                    <table class="table table-borderless">
-                      <thead>
-                        <tr>
-                          <th scope="col">教科名</th>
-                          <th scope="col">タスク名</th>
-                          <th scope="col">期限</th>
-                          <th scope="col">優先度 </th>
-                          <th scope="col">難易度</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <th scope="row"><a href="#">教科</a></th>
-                          <td><a href="#" class="text-primary fw-bold">タスク名</a></td>
-                          <td>期限（yyyy/mm/dd）</td>
-                          <td class="fw-bold">優先度</td>
-                          <td>難易度</td>
-                        </tr>
-                        
-                      </tbody>
-                    </table>
-  
-                  </div>
-  
-                </div>
-              </div><!-- End Top Selling -->
-  
+                  <input type="hidden" id="tagInput">
+                  <input type="hidden" id="tasksInput">
+                  <button type="submit" class="btn btn-primary">保存</button>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var dateModal = document.getElementById('dateModal');
+  dateModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var tag = button.getAttribute('data-tag');
+      var tasksScriptId = button.getAttribute('data-tasks');
+      var tasks = JSON.parse(document.getElementById(tasksScriptId).textContent);
+      var tagInput = dateModal.querySelector('#tagInput');
+      var tasksInput = dateModal.querySelector('#tasksInput');
+      tagInput.value = tag;
+      tasksInput.value = JSON.stringify(tasks);
+  });
+
+  var dateForm = document.getElementById('dateForm');
+  dateForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var dateInput = document.getElementById('dateInput').value;
+      var tag = document.getElementById('tagInput').value;
+      var tasks = JSON.parse(document.getElementById('tasksInput').value);
+
+      fetch('/update_tasks/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+              date: dateInput,
+              tag: tag,
+              tasks: tasks
+          })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert('タスクが更新されました');
+              location.reload();
+          } else {
+              alert('タスクの更新に失敗しました');
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+      });
+
+      var modal = bootstrap.Modal.getInstance(dateModal);
+      modal.hide();
+  });
+});
+</script>

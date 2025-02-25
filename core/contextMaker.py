@@ -1,9 +1,10 @@
-from django.db.models import Count, F, Case, When, IntegerField, Q, Func, Value, CharField
+from django.db.models import Count, F, Case, When, IntegerField, Q, Func, Value, CharField, Min, Max
 from .models import *
 from django.utils import timezone
 from django.utils.dateformat import DateFormat
-# import datetime
 from datetime import timedelta, date, datetime
+import json
+
 
 
 
@@ -61,6 +62,7 @@ def get_account_info(request):
             "u_auth": user.u_auth,
             "auth_type": user.get_u_auth_display(),
             "s_id": user.s_id,
+            "school_account": user.s.s_id,
             "school_id": school.id,
             "s_name": school.s_name,
         }
@@ -97,7 +99,6 @@ def get_library_context():
     ctxt["tasks"] = TblCurrDetail.objects.all()
     return ctxt
 
-
 def get_subject_info(u_id):
     subject_info = TblTask.objects.filter(u_id=u_id).exclude(sub_id=0).values('sub_id').annotate(
         task_count=Count('task_id'),
@@ -109,25 +110,46 @@ def get_subject_info(u_id):
             default=(Count(Case(When(~Q(status__in=[0, 1]), then=1), output_field=IntegerField())) * 100.0 / Count('task_id')),
             output_field=IntegerField()
         )
-    ).order_by('sub_id')  # sub_idでソート
-
+    ).order_by('sub_id') 
     return subject_info
 
 def get_curr_info(u_id):
-    curr_name= TblTask.objects.filter(u_id=u_id).values_list('curr__curr_name', flat=True).first()
+    curr_name = TblTask.objects.filter(u_id=u_id).values_list('curr__curr_name', flat=True).first()
     tasks = TblTask.objects.filter(u_id=u_id)
+    
     total_tasks = tasks.count()
     completed_tasks = tasks.exclude(status__in=[0, 1]).count()
     achievement_rate = (completed_tasks * 100 // total_tasks) if total_tasks > 0 else 0
+
+    # reg_dateの一番古い日付とdeadlineの一番新しい日付を取得
+    oldest_reg_date = tasks.aggregate(Min('reg_date'))['reg_date__min']
+    latest_deadline = tasks.aggregate(Max('deadline'))['deadline__max']
+
+    # 本日の日付を取得
+    today = date.today()
+
+    # 期間に対する本日の割合を計算
+    if oldest_reg_date and latest_deadline:
+        # datetime.date 型に変換
+        oldest_reg_date = oldest_reg_date.date() if isinstance(oldest_reg_date, datetime) else oldest_reg_date
+        latest_deadline = latest_deadline.date() if isinstance(latest_deadline, datetime) else latest_deadline
+
+        total_days = (latest_deadline - oldest_reg_date).days
+        days_passed = (today - oldest_reg_date).days
+        period_percentage = (days_passed * 100 // total_days) if total_days > 0 else 0
+    else:
+        period_percentage = 0
+    
+    
 
     return {
         'curr_name': curr_name,
         'total_tasks': total_tasks,
         'completed_tasks': completed_tasks,
-        'achievement_rate': achievement_rate
-        
+        'achievement_rate': achievement_rate,
+        'period_percentage': period_percentage  # 期間に対する本日の割合を追加
     }
-
+    
 def get_school_type(u_id):
     # ユーザーIDと同じカリキュラムネームを取得
     curr_name = TblTask.objects.filter(u_id=u_id).values_list('curr__curr_name', flat=True).first()
@@ -211,6 +233,7 @@ def get_review_list(u_id):
             'task_name': task_name,
             'sub_name': sub_name,
             'status': task.status,
+            'status_name': task.get_status_display(),
             'review_date': review_date_formatted,
             'review_date_raw': review_date  # ソート用の生の日付を保持
         })
@@ -219,6 +242,43 @@ def get_review_list(u_id):
     review_details_sorted = sorted(review_details, key=lambda x: x['review_date_raw'] or datetime.date.max)
 
     return review_details_sorted
+
+def get_recommended_task(u_id):
+    # ステータスが `0` で、`sub_id` が `0` 以外のタスクをフィルタリング
+    tasks = TblTask.objects.filter(u_id=u_id, status=0, grade=1, priority=1).exclude(sub_id=0)
+    
+    # 各教科でIDが一番若いもののタスクを取得
+    sub_ids = tasks.values('sub_id').distinct()
+    min_id_tasks = []
+    for sub_id in sub_ids:
+        min_id_task = tasks.filter(sub_id=sub_id['sub_id']).order_by('id').first()
+        if min_id_task:
+            min_id_tasks.append(min_id_task)
+    
+    # タグに含まれた `grade=1` と `priority=1` のタスク数とタスクを取得
+    tag_task_counts = []
+    for task in min_id_tasks:
+        tag_tasks = TblTask.objects.filter(u_id=u_id, tag=task.tag, grade=1, priority=1)
+        task_count = tag_tasks.count()
+        curriculum = TblCurriculum.objects.filter(sub_id=task.sub_id).first()
+        sub_name = curriculum.sub_name if curriculum else '不明'
+        task_details = []
+        for tag_task in tag_tasks:
+            curr_detail = TblCurrDetail.objects.filter(curr=tag_task.curr, task_id=tag_task.task_id).first()
+            task_details.append({
+                'id': tag_task.id,
+                'task_name': curr_detail.task_name if curr_detail else '不明',
+                'status': tag_task.status,
+                'deadline': tag_task.deadline.isoformat() if tag_task.deadline else None  # 日付を文字列に変換
+            })
+        tag_task_counts.append({
+            'sub_name': sub_name,
+            'tag': task.tag,
+            'task_count': task_count,
+            'tasks': json.dumps(task_details)  # JSONにシリアライズ
+        })
+    
+    return tag_task_counts
 
 def get_test_list(u_id):
     # TblGradesからu_idが一致するものを取得
@@ -237,7 +297,42 @@ def get_test_list(u_id):
     
     return score_list, testnames
 
-from datetime import timedelta, date
+def get_all_tasks(u_id):
+    tasks = TblTask.objects.filter(u_id=u_id)
+    task_list = []
+
+    for task in tasks:
+        curriculum = TblCurriculum.objects.filter(sub_id=task.sub_id).first()
+        sub_name = curriculum.sub_name if curriculum else '不明'
+
+        task_detail = TblCurrDetail.objects.filter(sub_id=task.sub_id, task_id=task.task_id).first()
+        task_name = task_detail.task_name if task_detail else '不明'
+
+        task_info = {
+            'id': task.id,
+            'sub_id': task.sub_id,
+            'sub_name': sub_name,
+            'task_id': task.task_id,
+            'task_name': task_name,
+            'status': task.status,
+            'grade': task.grade,
+            'priority': task.priority,
+            'tag': task.tag,
+            'deadline': task.deadline,
+            'number_1stchk': task.number_1stchk,
+            'number_1streview': task.number_1streview,
+            'number_2ndchk': task.number_2ndchk,
+            'number_3rdchk': task.number_3rdchk,
+            'number_4thchk': task.number_4thchk,
+            'number_5thchk': task.number_5thchk,
+            'number_6thchk': task.number_6thchk,
+            'get_grade_display': task.get_grade_display(),
+            'get_priority_display': task.get_priority_display(),
+            'get_status_display': task.get_status_display(),
+        }
+        task_list.append(task_info)
+
+    return task_list
 
 def get_complete_task_date(u_id, days=30):
     # TblTaskからu_idが一致するものを取得
@@ -267,10 +362,8 @@ def get_home_context(u_id):
     # サンプルデータを設定
     ctxt["school"] = SAMPLE_SCHOOL
 
-    # 現在ログインしているユーザーのu_idをセッションから取得
-    # u_id = request.session.get('user_id')
-
     subjectInfo = get_subject_info(u_id)
+    currInfo = get_curr_info(u_id)
     school_type = get_school_type(u_id)
     task_dict = get_task_list(u_id)
     review_dict = get_review_list(u_id)
@@ -284,18 +377,21 @@ def get_home_context(u_id):
         '中堅校': MiddleSchool,
         '実業系高校': BusinessSchool
     }.get(school_type, {})
+    
+    goal_scores = {key: value for key, value in school_dict.items() if key != "学校タイプ"}
 
     # 選択した辞書の各バリューにachievement_rateの値を乗じてuser_predScoreに代入
     user_predScore = {}
     for subject in subjectInfo:
         sub_name = subject['sub_name']
-        achievement_rate = subject['achievement_rate'] / 110.0  # パーセンテージを小数に変換
+        achievement_rate = subject['achievement_rate'] / 100.0  # パーセンテージを小数に変換
         if sub_name in school_dict:
-            user_predScore[sub_name] = school_dict[sub_name] * achievement_rate
-    
-    goal_scores = {key: value for key, value in school_dict.items() if key != "学校タイプ"}
+            # 初期値をgoal_scoresの半分に設定し、achievement_rateが100%に近づくにつれてgoal_scoresと一致するようにする
+            initial_value = school_dict[sub_name] / 2
+            user_predScore[sub_name] = initial_value + (school_dict[sub_name] - initial_value) * achievement_rate
     
     ctxt["subjectInfo"] = subjectInfo
+    ctxt["currInfo"] = currInfo
     ctxt["school_types"] = school_type
     ctxt["task_list"] = task_dict
     ctxt["review_list"] = review_dict
@@ -307,12 +403,11 @@ def get_home_context(u_id):
     ctxt["total_undone_tasks"] = total_undone_tasks
     ctxt["goal_scores"] = goal_scores
     ctxt["user_predScore"] = user_predScore
+    
 
     return ctxt
 
-
 #教師機能のコンテキスト
-
 
 def get_teacher_home_context(school_id, user_id):
     context = {}
@@ -356,6 +451,7 @@ def get_task_info(user_id, curriculum_name):
     subjects = [curriculum.sub_name for curriculum in curriculums]
     tasks = {}
     recent_task = []
+    doing_task = []  # statusが1のタスクを格納するリスト
     one_week_ago = date.today() - timedelta(days=7)
 
     for curriculum in curriculums:
@@ -366,7 +462,9 @@ def get_task_info(user_id, curriculum_name):
                 tbl_task = TblTask.objects.get(u_id=user_id, curr__curr_name=curriculum_name, sub_id=task.sub_id, task_id=task.task_id)
                 task_detail = {
                     'id': task.id,  # TblCurrDetailのIDであることに注意
+                    'tbl_task_id': tbl_task.id,
                     'sub_id': task.sub_id,
+                    'sub_name': curriculum.sub_name,
                     'task_id': task.task_id,
                     'task_name': task.task_name,
                     'grade': tbl_task.grade,
@@ -382,8 +480,11 @@ def get_task_info(user_id, curriculum_name):
                 }
                 tasks[curriculum.sub_name].append(task_detail)
                 
-                if tbl_task.number_1stchk and tbl_task.number_1stchk >= one_week_ago:
+                if tbl_task.number_1stchk and tbl_task.number_1stchk >= one_week_ago and tbl_task.status == 2:
                     recent_task.append(task_detail)
+                
+                if tbl_task.status == 1:
+                    doing_task.append(task_detail)
             except TblTask.DoesNotExist:
                 tasks[curriculum.sub_name].append({
                     'id': task.id,
@@ -401,7 +502,7 @@ def get_task_info(user_id, curriculum_name):
                     'get_grade_display': "未設定",
                     'get_priority_display': "未設定",
                 })
-    return {'subjects': subjects, 'tasks': tasks, 'recent_task': recent_task}
+    return {'subjects': subjects, 'tasks': tasks, 'recent_task': recent_task, 'doing_task': doing_task}
 
 def get_message_list(student_id):
     

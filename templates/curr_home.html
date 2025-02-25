@@ -7,7 +7,7 @@
   <div class="pagetitle d-flex justify-content-between align-items-center">
     <div>
         <h1>{{curriculum_name}}</h1>
-        {% if account.u_auth == 1 %}
+        {% if u_auth == 1 %}
         <a href="{% url 'curriculum_detail' curriculum_name %}">一</a>
         {% endif %}
         <nav>
@@ -22,7 +22,7 @@
         </nav>
     </div>
 
-    {% if account.u_auth != 0 and account.u_auth != -1 %}
+    {% if u_auth != 0 and u_auth != -1 %}
     <div class="btn-group">
       <button type="button" class="btn btn-success me-2 rounded" data-bs-toggle="modal" data-bs-target="#basicModal">
           <i class="bi bi-plus"></i>
@@ -77,76 +77,10 @@
           </div>
       </div>
   </div>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchButton = document.getElementById('searchButton');
-        const memberDropdown = document.getElementById('memberDropdown');
-    
-        /*
-        searchButton.addEventListener('click', function() {
-            const query = document.getElementById('memberSearch').value;
-            const schoolId = "{{ school_id }}"; // Djangoテンプレートからschool_idを取得
-            if (query.length > 0) {
-                fetch(`/search-members/?q=${query}&school_id=${schoolId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        memberDropdown.innerHTML = '<option selected>メンバーを選択...</option>';
-                        data.forEach(member => {
-                            const option = document.createElement('option');
-                            option.value = member.u_id;
-                            option.textContent = `ID: ${member.u_id}, 名前: ${member.u_name}`;
-                            memberDropdown.appendChild(option);
-                        });
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-        });
-        */
-    
-        const addMemberForm = document.getElementById('addMemberForm');
-        addMemberForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            const selectedMemberId = memberDropdown.value;
-            const curriculumName = "{{ curriculum_name }}"; // Djangoテンプレートからcurriculum_nameを取得
-            const schoolId = "{{ school_id }}"; // Djangoテンプレートからschool_idを取得
-            const deadline = document.getElementById('deadline').value;
-
-            if (selectedMemberId !== 'メンバーを選択...') {
-                fetch('/add-member-to-task/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({
-                        user_id: selectedMemberId,
-                        curriculum_name: curriculumName,
-                        school_id: schoolId,
-                        deadline: deadline
-                    })
-                    
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        alert('メンバーが正常に追加されました');
-                        //location.reload();
-                    } else {
-                        alert('エラーが発生しました: ' + data.message);
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
-        });
-    });
-</script>
 
     </div>
   </div>
-        
 
-  <!-- End Page Title -->
 
   <section class="section dashboard">
     <div class="row">
@@ -175,64 +109,19 @@
                 <div class="d-flex justify-content-between align-items-center">
                   <h5 class="card-title">タスク一覧</h5>
                   <div>
-                    {% if account.u_auth != 0 and account.u_auth != -1 %}
+                    {% if u_auth != 0 and u_auth != -1 %}
 
                     <button id="save-button" class="btn btn-primary">保存</button>
-                    <button id="import-task-button" class="btn btn-primary">インポート</button>
+                    <button id="export-task-button" class="btn btn-primary">エクスポート</button>        
                     <button id="bulk-add-button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkAddModal">一括追加</button>
                     {% endif %}
 
-                    <button id="auto-fill-button" class="btn btn-secondary">テンプレート読込</button> 
+                    {% comment %} <button id="auto-fill-button" class="btn btn-secondary">テンプレート読込</button>  {% endcomment %}
                     
                   </div>
                 </div>
 
-                <!-- 自動入力モーダル -->
-                <div class="modal fade" id="autoFillModal" tabindex="-1" aria-labelledby="autoFillModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="autoFillModalLabel">自動入力</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <form id="autoFillForm">
-                          <div class="mb-3">
-                            <label for="teacherDropdown" class="form-label">テンプレートを使う講師を選択</label>
-                            <select class="form-select" id="teacherDropdown">
-                              <option selected>講師を選択...</option>
-                              {% for teacher in teachers %}
-                                <option value="{{ teacher.u_id }}">名前: {{ teacher.u_name }}</option>
-                              {% endfor %}
-                            </select>
-                          </div>
-                          <button type="submit" id = "apply-auto-fill" class="btn btn-primary">自動入力</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-
-                <!--一斉追加モーダル -->
-                <div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title" id="bulkAddModalLabel">タスク一括追加</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                      </div>
-                      <div class="modal-body">
-                        <textarea id="bulk-add-textarea" class="form-control" rows="10" placeholder="例: タグ タスク名  重要度  優先度&#10;タスクは改行で区切り、タスク内の要素はタブキーで分けます。"></textarea>
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
-                        <button type="button" id="bulk-add-confirm" class="btn btn-primary">追加</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
+                {% include 'components/_curr_home_modal.html'%}
 
                 <div class="mb-3">
                   <label for="subject-select" class="form-label">教科を選択</label>
@@ -252,6 +141,9 @@
                       <th>タスク名</th>
                       <th>重要度</th>
                       <th>難易度</th>
+                      {%if u_auth == 2 %}
+                      <th>削除</th>
+                      {% endif %}
                       <!-- 必要に応じて他のフィールドを追加 -->
                     </tr>
                   </thead>
@@ -278,6 +170,11 @@
                           {% endfor %}
                         </select>
                       </td>
+                      {%if u_auth == 2 %}
+                      <td>
+                        <button type="button" class="btn btn-danger delete-task-button" data-task-id="{{ task.id }}" data-tbl-task-id="{{task.Tbltask_id}}">削除</button>
+                      </td>
+                      {% endif %}
                       <!-- 必要に応じて他のフィールドを追加 -->
                     </tr>
                     {% endfor %}
@@ -339,300 +236,5 @@
               </div>
             </div>
 
-            <script>
-              document.addEventListener('DOMContentLoaded', function() {
-                const subjectSelect = document.getElementById('subject-select');
-                const taskTableBody = document.getElementById('task-table-body');
-                const rows = taskTableBody.querySelectorAll('tr');
-                const autoFillButton = document.getElementById('auto-fill-button');
-                const autoFillModal = new bootstrap.Modal(document.getElementById('autoFillModal'));
-                const applyAutoFillButton = document.getElementById('apply-auto-fill');
-                const teacherSelect = document.getElementById('teacher-select');
-                const bulkAddConfirmButton = document.getElementById('bulk-add-confirm');
-                const saveButton = document.getElementById('save-button');
-                const importTaskButton = document.getElementById('import-task-button');
-                const bulkAddButton = document.getElementById('bulk-add-button');
-
-                document.getElementById('bulk-add-textarea').addEventListener('keydown', function(e) {
-                  if (e.key === 'Tab') {
-                      e.preventDefault();
-                      const start = this.selectionStart;
-                      const end = this.selectionEnd;
-              
-                      // Insert tab character at the cursor position
-                      this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
-              
-                      // Move the cursor to the right position
-                      this.selectionStart = this.selectionEnd = start + 1;
-                  }
-              });
-
-                if (autoFillButton) {
-                  autoFillButton.addEventListener('click', function() {
-                      autoFillModal.show();
-                  });
-              }
-
-              if (applyAutoFillButton) {
-                applyAutoFillButton.addEventListener('click', function() {
-                    const teacherId = teacherDropdown.value;
-                    if (!teacherId) {
-                        alert('講師とカリキュラムを選択してください');
-                        return;
-                    }
-        
-                    const taskRows = document.querySelectorAll('#task-table tbody tr');
-                    taskRows.forEach(row => {
-                        const subId = row.querySelector('.subject-cell').getAttribute('value');
-                        const taskId = row.querySelector('.task-name-cell').getAttribute('value');
-        
-                        fetch('/get-task-attributes/', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token }}'
-                            },
-                            body: JSON.stringify({
-                                teacherId: teacherId,
-                                curr: {{ curriculum_name }},
-                                subid: subId,
-                                task_id: taskId
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.error) {
-                                alert(data.error);
-                                return;
-                            }
-                            const tagCell = row.querySelector('.tag-cell');
-                            const gradeSelect = row.querySelector('.grade-select');
-                            const prioritySelect = row.querySelector('.priority-select');
-                            console.log(data);
-        
-                            if (tagCell && gradeSelect && prioritySelect) {
-                                tagCell.textContent = data.tasks[0].tag;
-                                gradeSelect.value = data.tasks[0].grade;
-                                prioritySelect.value = data.tasks[0].priority;
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('エラーが発生しました');
-                        });
-                    });
-                });
-            }
-
-
-            
-                // ローカルストレージから選択された値を復元
-                const savedSubject = localStorage.getItem('selectedSubject');
-                if (savedSubject) {
-                    subjectSelect.value = savedSubject;
-                }
-            
-                // 選択された値をローカルストレージに保存
-                subjectSelect.addEventListener('change', function() {
-                    localStorage.setItem('selectedSubject', subjectSelect.value);
-                });
-            
-                if (saveButton) {
-                    saveButton.addEventListener('click', handleSaveTasks);
-                }
-            
-                if (importTaskButton) {
-                    importTaskButton.addEventListener('click', handleImportTasks);
-                }
-            
-                if (bulkAddButton) {
-                    bulkAddButton.addEventListener('click', handleBulkAdd);
-                }
-            
-                if (autoFillButton) {
-                    autoFillButton.addEventListener('click', handleAutoFill);
-                }
-            
-                function updateRowIndices() {
-                    const visibleRows = Array.from(taskTableBody.querySelectorAll('tr')).filter(row => row.style.display !== 'none');
-                    visibleRows.forEach((row, index) => {
-                        row.querySelector('.index-cell').innerText = index + 1;
-                    });
-                }
-            
-                function filterRowsBySubject() {
-                    const selectedSubject = subjectSelect.value;
-                    rows.forEach(row => {
-                        if (selectedSubject === '' || row.getAttribute('data-subject') === selectedSubject) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                    updateRowIndices();
-                }
-            
-                function handleTaskNameBlur(event) {
-                    const taskName = event.target.innerText;
-                    const row = event.target.closest('tr');
-                    const tagCell = row.querySelector('.tag-cell');
-                    const gradeSelect = row.querySelector('.grade-select');
-                    const prioritySelect = row.querySelector('.priority-select');
-            
-                    if (!tagCell || !gradeSelect || !prioritySelect) {
-                        console.error('Required elements not found in the row');
-                        return;
-                    }
-            
-                    fetchTaskAttributes(taskName, tagCell, gradeSelect, prioritySelect);
-                }
-            
-                function handleBulkAdd() {
-                    const bulkAddTextarea = document.getElementById('bulk-add-textarea');
-                    const taskLines = bulkAddTextarea.value.split('\n').filter(line => line.trim() !== '');
-                    console.log(taskLines);
-            
-                    taskLines.forEach((line) => {
-                      const [tag, taskName, priority, grade] = line.split('\t').map(item => item.trim());
-              
-                      const newRow = document.createElement('tr');
-                      newRow.innerHTML = `
-                          <td class="index-cell"></td>
-                          <td class="manage-id">-1</td>
-                          <td class="subject-cell">${subjectSelect.value}</td>
-                          <td class="tag-cell" contenteditable="true">${tag || '未設定'}</td>
-                          <td class="task-name-cell" contenteditable="true">${taskName}</td>
-                          <td>
-                              <select class="form-select grade-select">
-                                  <option value="1" ${grade === 'A' ? 'selected' : ''}>A</option>
-                                  <option value="2" ${grade === 'B' ? 'selected' : ''}>B</option>
-                                  <option value="3" ${grade === 'C' ? 'selected' : ''}>C</option>
-                              </select>
-                          </td>
-                          <td>
-                              <select class="form-select priority-select">
-                                  <option value="1" ${priority === 'A' ? 'selected' : ''}>A</option>
-                                  <option value="2" ${priority === 'B' ? 'selected' : ''}>B</option>
-                                  <option value="3" ${priority === 'C' ? 'selected' : ''}>C</option>
-                              </select>
-                          </td>
-                          <td>
-                              <button class="btn btn-danger btn-sm delete-row">削除</button>
-                          </td>
-                      `;
-                      taskTableBody.appendChild(newRow);
-                  });
-                 
-            
-                    // モーダルを閉じる
-                    const bulkAddModal = document.getElementById('bulkAddModal');
-                    const modal = bootstrap.Modal.getInstance(bulkAddModal);
-                    modal.hide();
-            
-                    // テキストエリアをクリア
-                    bulkAddTextarea.value = '';
-            
-                    // 行番号を更新
-                    updateRowIndices();
-                }
-            
-                function handleSaveTasks() {
-                    const rows = taskTableBody.querySelectorAll('tr');
-                    const tasks = [];
-                    const selectedSubject = subjectSelect.value;
-            
-                    rows.forEach(row => {
-                        const task = {
-                            user_name: '{{ u_name }}',
-                            user_id: '{{ u_id }}',
-                            s_id: '{{ s_id }}',
-                            curr_name: '{{ curriculum_name }}',
-                            management_id: row.querySelector('.manage-id').innerText,
-                            subject: row.querySelector('.subject-cell').innerText,
-                            tag: row.querySelector('.tag-cell').innerText,
-                            task_id: parseInt(row.querySelector('.index-cell').innerText, 10),
-                            task_name: row.querySelector('.task-name-cell').innerText,
-                            grade: row.querySelector('.grade-select').value,
-                            priority: row.querySelector('.priority-select').value
-                        };
-                        tasks.push(task);
-                    });
-            
-                    fetch('/save-tasks/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({ tasks: tasks })
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.status === 'success') {
-                            alert('タスクが正常に保存されました');
-                            location.reload(); 
-                        } else {
-                            alert('エラーが発生しました: ' + data.message);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('エラーが発生しました: ' + error.message);
-                    });
-                }
-            
-                function handleImportTasks() {
-                    // インポートボタンの処理
-                    alert('インポート機能はまだ実装されていません。');
-                }
-            
-                function handleAutoFill() {
-                    // 自動入力ボタンの処理
-                    const taskNameCells = document.querySelectorAll('.task-name-cell');
-                    taskNameCells.forEach(cell => {
-                        const taskName = cell.innerText;
-                        const row = cell.closest('tr');
-                        const tagCell = row.querySelector('.tag-cell');
-                        const gradeSelect = row.querySelector('.grade-select');
-                        const prioritySelect = row.querySelector('.priority-select');
-            
-                        if (!tagCell || !gradeSelect || !prioritySelect) {
-                            console.error('Required elements not found in the row');
-                            return;
-                        }
-            
-                        fetchTaskAttributes(taskName, tagCell, gradeSelect, prioritySelect);
-                    });
-                }
-            
-                // イベントリスナーの設定
-                subjectSelect.addEventListener('change', filterRowsBySubject);
-                if (autoFillButton) {
-                    autoFillButton.addEventListener('click', handleAutoFill);
-                }
-                if (bulkAddConfirmButton) {
-                    bulkAddConfirmButton.addEventListener('click', handleBulkAdd);
-                }
-                if (saveButton) {
-                    saveButton.addEventListener('click', handleSaveTasks);
-                }
-            
-                // 削除ボタンのイベントリスナーを設定
-                taskTableBody.addEventListener('click', function(event) {
-                    if (event.target.classList.contains('delete-row')) {
-                        const row = event.target.closest('tr');
-                        row.remove();
-                        updateRowIndices();
-                    }
-                });
-            
-                // ページ読み込み時に最初の教科を選択してフィルタリング
-                filterRowsBySubject();
-            });
-              </script>
+            {% include 'components/_curr_home_js.html'%}
 {% endblock %}

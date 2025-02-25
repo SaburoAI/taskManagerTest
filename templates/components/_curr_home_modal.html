@@ -1,0 +1,64 @@
+<!-- 自動入力モーダル -->
+                <div class="modal fade" id="autoFillModal" tabindex="-1" aria-labelledby="autoFillModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="autoFillModalLabel">自動入力</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form id="autoFillForm">
+                          <div class="mb-3">
+                            <label for="teacherDropdown" class="form-label">テンプレートを使う講師を選択</label>
+                            <select class="form-select" id="teacherDropdown">
+                              <option selected>講師を選択...</option>
+                              {% for teacher in teachers %}
+                                <option value="{{ teacher.u_id }}">名前: {{ teacher.u_name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <button type="submit"  id = "apply-auto-fill" class="btn btn-primary">自動入力</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                <!--一斉追加モーダル -->
+                <div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="bulkAddModalLabel">タスク一括追加</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <textarea id="bulk-add-textarea" class="form-control" rows="10" placeholder="例: タグ タスク名  重要度  優先度&#10;タスクは改行で区切り、タスク内の要素はタブキーで分けます。"></textarea>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                        <button type="button" id="bulk-add-confirm" class="btn btn-primary">追加</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- エクスポートモーダル -->
+                <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                      <div class="modal-content">
+                          <div class="modal-header">
+                              <h5 class="modal-title" id="exportModalLabel">タスクエクスポート</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                          </div>
+                          <div class="modal-body">
+                              <textarea id="export-textarea" class="form-control" rows="10" readonly></textarea>
+                          </div>
+                          <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                              <button type="button" id="copy-to-clipboard" class="btn btn-primary">クリップボードにコピー</button>
+                          </div>
+                      </div>
+                  </div>
+                </div>

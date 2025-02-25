@@ -16,12 +16,13 @@
                   </div>
   
                   <div class="card-body pb-0">
-                    <h5 class="card-title">直近のタスク<span>| 今週</span></h5>
+                    <h5 class="card-title">未チェックのタスク<span>| 今週</span></h5>
   
                     <table class="table table-borderless">
                       <thead>
                         <tr>
-                          {% comment %} <th scope="col">教科名</th> {% endcomment %}
+                          <th class="manage-id">管理ID</th>
+                          <th scope="col">教科名</th>
                           <th scope="col">タスク名</th>
                           <th scope="col">チェック日</th>
                           <th scope="col">重要度 </th>
@@ -31,8 +32,9 @@
                       <tbody>
                         {% for task in recent_task %}
                         <tr>
-                            {% comment %} <th scope="row"><a href="#">教科</a></th> {% endcomment %}
-                            <td><a href="#" class="text-primary fw-bold">{{ task.task_name }}</a></td>
+                            <th class="manage-id">{{ task.tbl_task_id }}</th>
+                            <th scope="row">{{task.sub_name}}</a></th>
+                            <td><a href="#" class="text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#oralCheckModal" data-task-id="{{ task.tbl_task_id }}">{{ task.task_name }}</a></td>
                             <td>{{ task.number_1stchk|date:"Y/m/d" }}</td>
                             <td class="fw">{{ task.get_grade_display }}</td>
                             <td>{{ task.get_priority_display }}</td>
@@ -45,4 +47,33 @@
   
                 </div>
               </div><!-- End Top Selling -->
+
+              <!-- Oral Check Modal -->
+<div class="modal fade" id="oralCheckModal" tabindex="-1" aria-labelledby="oralCheckModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="oralCheckModalLabel">口頭チェック</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <form id="oralCheckForm">
+                  <div class="mb-3">
+                      <label for="taskName" class="form-label">タスク名</label>
+                      <input type="text" class="form-control" id="taskName" readonly>
+                  </div>
+                  <div class="mb-3">
+                      <label for="oralCheckResult" class="form-label">結果</label>
+                      <select class="form-control" id="oralCheckResult">
+                          <option value="合格">合格</option>
+                          <option value="不合格">不合格</option>
+                      </select>
+                  </div>
+                  <input type="hidden" id="taskId">
+                  <button type="submit" class="btn btn-primary">保存</button>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
   

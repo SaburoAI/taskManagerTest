@@ -1,6 +1,6 @@
             <div class="col-12">
                 <div class="card recent-sales overflow-auto">
-                  <div class="filter">
+                  {% comment %} <div class="filter">
                     <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bx bx-plus"></i></a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
                       <li class="dropdown-header text-start">
@@ -9,7 +9,7 @@
             
                       <li><a href= "" class="dropdown-item" >カリキュラム割り当て</a></li>
                     
-                  </div>
+                  </div> {% endcomment %}
 
 
 
@@ -21,17 +21,16 @@
                         <th>生徒名</th>
                         <th>選択カリキュラム</th>
                         <th>達成率</th>
-                        <th>引き継ぎ事項</th>
+                        
                       </tr>
                       {% for student in student_data %}
                       <tr>
-                          {% comment %} <td><a href="{% url 'student_detail' student.u_id %}"> {% endcomment %}
                             <td><a href="{% url 'student_status' student.u_id %}">
                             {{ student.user_simei }}</a></td>
                           
                           <td>{{ student.school_type }}</td>
                           <td>{{ student.curr_info.achievement_rate }}%</td>
-                          <td><a href="">メッセージへ</a></td>
+                          
                       </tr>
                       {% endfor %}
                     </table>

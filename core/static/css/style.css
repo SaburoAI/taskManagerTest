@@ -1298,7 +1298,7 @@ h6 {
 .table th.id-column, .table td.index-cell {
   width: 30px; /* 必要に応じて調整 */
 }
-.table th.subject-cell, .table td.subject-cell , table th.manage-id ,table td.manage-id, table th.detail-id, table td.detail-id {  
+.table th.subject-cell, .table td.subject-cell , table th.manage-id ,table th.query,table td.manage-id, table th.detail-id, table td.detail-id,table td.query {  
   display: none;
 }
 
