@@ -4,6 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+# from core.models import TblSchoolid
 
 # Create your models here.
 class CustomUserManager(BaseUserManager):
@@ -43,8 +44,6 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-
-
     username_validator = UnicodeUsernameValidator()
 
     username = models.CharField(
@@ -75,8 +74,29 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
+    # TblUser のカラムを追加
+    user_simei = models.CharField(max_length=100, default='未設定')
+    # s = models.ForeignKey('TblSchoolid', on_delete=models.CASCADE)
+    u_auth = models.SmallIntegerField(
+        choices=[
+            (-1, '保護者'),
+            (0, '生徒'),
+            (1, '講師'),
+            (2, '教室'),
+        ],
+        default=0
+    )
+    l_login_date = models.DateTimeField(auto_now=True, blank=True, null=True)
+    update_date = models.DateTimeField(auto_now=True, blank=True, null=True)
+    reg_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
     objects = CustomUserManager()
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
+
+    def __str__(self):
+        return self.username
+
+

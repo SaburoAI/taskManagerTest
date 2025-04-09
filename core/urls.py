@@ -10,6 +10,7 @@ urlpatterns = [
     path('ログアウト/', views.user_logout, name='logout'),
     path('ログイン/', LoginView.as_view(), name='login'),
     path('生徒ホーム/', StudentHomeView.as_view(), name="studentHome"),
+    path("保護者ホーム/", ParentHomeView.as_view(), name="parentHome"),
     path('テスト結果/<int:test_id>/', views.get_results, name='get_results'),
     path('テスト結果/<int:test_id>/<int:student_id>/', get_results, name='get_results_with_student'),
     path('講師ホーム/', TeacherHomeView.as_view(), name="teacherHome"),
@@ -26,7 +27,7 @@ urlpatterns = [
 
     
     path('マイページ/', MypageView.as_view(), name='my_page'),
-    path('password_change/', TblUserPasswordChangeView.as_view(), name='password_change'),
+    
 
     path('生徒カルテ/<str:student_id>/',StudentStatusView.as_view(), name='student_status'),
     path('add_message/', views.add_message, name='add_message'),
@@ -41,7 +42,6 @@ urlpatterns = [
 
     path('save_subjects/', SaveSubjectsView.as_view(), name='save_subjects'),
     path('save_tests/', SaveTestsView.as_view(), name='save_tests'),
-
 
     path('add-member-to-task/', AddMemberToTaskView.as_view(), name='add_member_to_task'),
     path('save-tasks/', SaveTasksView.as_view(), name='save-tasks'),
@@ -58,4 +58,13 @@ urlpatterns = [
     path('update_task_status/<int:task_id>/', views.update_task_status, name='update_task_status'),
     path('update_task_status/<int:task_id>/<int:student_id>/', update_task_status, name='update_task_status_with_student'),
     path('update_status/<int:task_id>/', views.update_status, name='update_status'),
+    
+    path('qr-reader/', QRReaderView.as_view(), name='qr_reader'),
+    path('qr-result/', views.qr_result, name='qr_result'),
+    path('keep-session-alive/', keep_session_alive, name='keep_session_alive'),
+    path('get-latest-logs/', get_latest_logs, name='get_latest_logs'),
+
+    
+    
+    
 ]

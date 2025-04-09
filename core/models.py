@@ -2,6 +2,7 @@ from django.db import models
 from datetime import timedelta
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils.timezone import now
 
 
 class TblSchoolid(models.Model):
@@ -63,6 +64,7 @@ def create_parent_account(sender, instance, created, **kwargs):
         TblUser.objects.create(
             u_name=parent_u_name,
             u_pass=instance.u_pass,
+            user_simei = f'{instance.user_simei} 保護者',
             s=instance.s,
             u_auth=-1
         )
@@ -251,3 +253,27 @@ class TblMessage(models.Model):
         return f'Message from {self.sender} to {self.receiver}'
     
 
+
+class EntryExitLog(models.Model):
+    STATUS_CHOICES = [
+        ('entered', '入室中'),
+        ('exited', '退室済み'),
+    ]
+
+    user = models.ForeignKey(TblUser, on_delete=models.CASCADE, related_name='entry_exit_logs')
+    entry_time = models.DateTimeField(default=now, verbose_name="入室時間")
+    exit_time = models.DateTimeField(blank=True, null=True, verbose_name="退室時間")
+    duration = models.DurationField(blank=True, null=True, verbose_name="滞在時間")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='entered', verbose_name="状態")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="作成日時")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="更新日時")
+
+    def save(self, *args, **kwargs):
+        # 滞在時間を計算
+        if self.entry_time and self.exit_time:
+            self.duration = self.exit_time - self.entry_time
+            self
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.u_name} - {self.status}"

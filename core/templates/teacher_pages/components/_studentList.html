@@ -15,7 +15,7 @@
 
                   <div class="card-body">
                     <h5 class="card-title">生徒一覧</h5>
-
+                    {% if u.auth != -1 %}
                     <table class="table table-striped table-hover">
                       <tr>
                         <th>生徒名</th>
@@ -33,6 +33,10 @@
                           
                       </tr>
                       {% endfor %}
+
+                      {% else %}
+                      <p>生徒が登録されていません</p>
+                      {% endif %}
                     </table>
 
                   </div>
