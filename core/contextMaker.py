@@ -3,7 +3,10 @@ from .models import *
 from django.utils import timezone
 from django.utils.dateformat import DateFormat
 from datetime import timedelta, date, datetime
-import json
+import json,qrcode
+from io import BytesIO
+from django.http import HttpResponse
+
 
 
 
@@ -80,11 +83,7 @@ def get_account_info(request):
             "u_auth": user_neme.u_auth,
             "auth_type": user_neme.get_u_auth_display(),
         }
-    
-    
-    
-   
-    
+
     # 新しい変数を追加
     account_info["in"] = "some_value"
     
@@ -526,3 +525,35 @@ def get_message_list(student_id):
         })
         
     return message_list
+
+def generate_qr_code(u_id):
+    """
+    u_id を含む高解像度のQRコードを生成し、バイナリデータを返す関数
+    """
+    # QRコードに埋め込むデータ
+    data = {
+        "u_id": int(u_id),
+        "u_simei": TblUser.objects.get(u_id=u_id).user_simei,
+        "s_id": TblUser.objects.get(u_id=u_id).s_id,
+        "s_name": TblSchoolid.objects.get(id=TblUser.objects.get(u_id=u_id).s_id).s_name,
+        "u_auth": TblUser.objects.get(u_id=u_id).u_auth,
+    }
+
+    # QRコードを生成
+    qr = qrcode.QRCode(
+        version=1,  # サイズ（1が最小）
+        error_correction=qrcode.constants.ERROR_CORRECT_L,  # エラー訂正レベル
+        box_size=40,  # 高解像度のためにボックスサイズを大きく設定
+        border=4,  # ボーダーのサイズ
+    )
+    qr.add_data(json.dumps(data))  # 辞書データをJSON文字列に変換して埋め込む
+    qr.make(fit=True)
+
+    # QRコードを画像としてメモリ上に保存
+    buffer = BytesIO()
+    img = qr.make_image(fill_color="black", back_color="white")
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    # バイナリデータを返す
+    return buffer.getvalue()

@@ -155,7 +155,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # プロジェクトの静的ファイルのディレクトリを指定
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR),  # 静的ファイルが含まれるディレクトリを指定
+    os.path.join(BASE_DIR, 'static'),  # 静的ファイルが含まれるディレクトリを指定
 ]
 
 # Default primary key field type

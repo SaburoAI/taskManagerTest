@@ -1,0 +1,53 @@
+{% load base64_filters %}
+<div class="accordion mb-4" id="accordionExample">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="headingOne">
+            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="False" aria-controls="collapseOne">
+                IDを表示
+            </button>
+        </h2>
+        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+                <!-- QRコード -->
+                <img src="data:image/png;base64,{{ qr_code|b64encode }}" alt="QRコード" id="qr-code" style="width: 200px; height: 200px; object-fit: contain;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 全画面表示用のモーダル -->
+<div id="qrModal" class="modal" tabindex="-1" style="display: none;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">QRコード</h5>
+                <button type="button" class="btn-close" id="closeModal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="data:image/png;base64,{{ qr_code|b64encode }}" alt="QRコード" style="width: 100%; max-width: 500px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // QRコードクリックでモーダルを表示
+    const qrCode = document.getElementById("qr-code");
+    const qrModal = document.getElementById("qrModal");
+    const closeModal = document.getElementById("closeModal");
+
+    qrCode.addEventListener("click", () => {
+        qrModal.style.display = "block";
+    });
+
+    closeModal.addEventListener("click", () => {
+        qrModal.style.display = "none";
+    });
+
+    // モーダル外をクリックした場合に閉じる
+    window.addEventListener("click", (event) => {
+        if (event.target === qrModal) {
+            qrModal.style.display = "none";
+        }
+    });
+</script>

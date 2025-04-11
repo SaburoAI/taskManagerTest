@@ -1,0 +1,124 @@
+<div class="col-12">
+  <div class="card">
+    <!-- ドロップダウンメニュー -->
+<div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" id="viewDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    表示切替
+  </button>
+  <div class="dropdown-menu" aria-labelledby="viewDropdown">
+    <a class="dropdown-item" href="#" data-view="dayGridMonth">月</a>
+    <a class="dropdown-item" href="#" data-view="timeGridWeek">週</a>
+    <a class="dropdown-item" href="#" data-view="timeGridDay">日</a>
+  </div>
+</div>
+      <!-- Calendar -->
+      <div class="mb-5">
+          <div id="calendar"></div>
+      </div>
+        <!-- Cancel/Confirm Btn -->
+<div class="row mb-5">
+  <div class="col text-end">
+      <a href="" id="cancelBtn" class="btn btn-secondary disabled">Cancel Reservation</a>
+  </div>
+  <form class="col" action="" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="room", value="">
+      <input type="hidden" name="user", value="">
+      <input type="hidden" name="title", value="", id="inputTitle">
+      <input type="hidden" name="start_time", value="", id="inputStartTime">
+      <input type="hidden" name="end_time", value="", id="inputEndTime">
+
+      <button id="confirmBtn" type="submit" class="btn btn-primary disabled">Confirm Reservation</button>
+  </form>
+</div> 
+  </div>
+
+</div>
+
+
+
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/locales/ja.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      function formatDateTime(datetime) {
+          const year = datetime.getFullYear();
+          const month = String(datetime.getMonth() + 1).padStart(2, '0');
+          const day = String(datetime.getDate()).padStart(2, '0');
+          const hour = String(datetime.getHours()).padStart(2, '0');
+          const minute = String(datetime.getMinutes()).padStart(2, '0');
+          return `${year}-${month}-${day}T${hour}:${minute}`;
+      }
+
+      var calendarEl = document.getElementById('calendar');
+      var eventsData = '{{ events|escapejs }}';
+      var events = [];
+
+      try {
+          events = JSON.parse(eventsData);
+      } catch (e) {
+          console.error('Invalid JSON data for events:', e);
+      }
+
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+          locale: 'ja',  // 日本語ロケールを設定
+          events: events,
+          initialView: 'timeGridWeek',
+          allDaySlot: false,
+          height: 500,
+          timeZone: 'ja',
+          slotMinTime: '09:00:00',
+          slotMaxTime: '22:00:00',
+          slotDuration: '00:30:00',
+          businessHours: false,
+          eventBackgroundColor: '#B8B8B8',
+          eventBorderColor: '#B8B8B8',
+          selectable: true,
+          selectOverlap: false,
+          select: function(info) {
+              const reservationTitle = prompt('予約のタイトルを入力してください。');
+              if (reservationTitle) {
+                  calendar.addEvent({
+                      title: reservationTitle,
+                      start: info.start,
+                      end: info.end,
+                  });
+                  var inputTitle = document.getElementById('inputTitle');
+                  var inputStartTime = document.getElementById('inputStartTime');
+                  var inputEndTime = document.getElementById('inputEndTime');
+                  inputTitle.value = reservationTitle;
+                  inputStartTime.value = formatDateTime(info.start);
+                  inputEndTime.value = formatDateTime(info.end);
+                  document.getElementById('confirmBtn').classList.remove('disabled');
+                  document.getElementById('cancelBtn').classList.remove('disabled');
+              }
+          },
+      });
+      calendar.render();
+
+      // ドロップダウンメニューのイベントリスナーを追加
+      document.querySelectorAll('.dropdown-item').forEach(function(item) {
+          item.addEventListener('click', function(event) {
+              event.preventDefault();
+              var view = event.target.getAttribute('data-view');
+              calendar.changeView(view);
+          });
+      });
+  });
+</script>
+<style>
+  @media (max-width: 768px) {
+      #calendar {
+          font-size: 12px; /* フォントサイズを小さくする */
+      }
+      .fc-toolbar-title {
+          font-size: 14px; /* タイトルのフォントサイズを調整 */
+      }
+      .fc-daygrid-event {
+          font-size: 10px; /* イベントのフォントサイズを調整 */
+      }
+  }
+</style>
+{% endblock script %}

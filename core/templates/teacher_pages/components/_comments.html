@@ -68,10 +68,13 @@
                         <label for="messageRead" class="form-label">既読</label>
                         <input type="checkbox" class="form-check-input" id="messageRead">
                     </div> {% endcomment %}
+                    {% if u_auth != -1 %}
                     <div class="mb-3">
                         <label for="messageOpenOrNot" class="form-label">生徒に公開</label>
                         <input type="checkbox" class="form-check-input" id="messageOpenOrNot">
                     </div>
+                    {% endif %}
+
                     <button type="submit" class="btn btn-primary">送信</button>
                 </form>
             </div>

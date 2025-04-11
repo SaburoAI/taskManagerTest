@@ -25,13 +25,14 @@
       <!-- End Profile Page Nav -->
 
 
-
+{% if u_auth != -1 %}
        <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'library' %}">
           <i class="bi bi-folder2-open"></i>
           <span>ライブラリー</span>
         </a>
       </li>
+{% endif %}
 
 
     {% if u_auth == 0 %}
@@ -56,6 +57,13 @@
 {% endif %}
 
 {% if u_auth == 2 %}
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'qr_reader' %}" target="_blank">
+          <i class="bi bi-card-list"></i>
+          <span>登下校管理</span>
+        </a>
+      </li>
 
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'subject_list'%}">

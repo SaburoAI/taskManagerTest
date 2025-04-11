@@ -20,7 +20,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 import json, logging, os
 from datetime import datetime
-
+import pytz
+from django.utils.timezone import localtime
 
 
 #アカウントのテーブルを2つに分けているため既存のLoginRequiredMixinやlogin_requiredが機能しないので、独自のログインチェックを行う　
@@ -43,7 +44,6 @@ class MypageView(CustomLoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
         ctxt.update(get_account_info(self.request))
-        #print(ctxt)
         
         return ctxt
     
@@ -51,7 +51,7 @@ class MypageView(CustomLoginRequiredMixin, TemplateView):
 class TblUserPasswordChangeView(LoginRequiredMixin, FormView):
     form_class = TblUserPasswordChangeForm
     template_name = 'mypage.html'
-    success_url = reverse_lazy('password_change_done')
+    success_url = reverse_lazy('mypage')
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -70,10 +70,6 @@ class TblUserPasswordChangeView(LoginRequiredMixin, FormView):
     
 @custom_login_required
 def create_user(request):
-    
-    
-    
-    
     school_id = request.session.get('school_id')
     if not school_id:
         return redirect('login')  # ログインしていない場合はログインページにリダイレクト
@@ -107,8 +103,11 @@ def root_view(request):
     
     if user_id:
         user = TblUser.objects.get(u_id=user_id)
-        if user.u_auth in [0, -1]:
+        if user.u_auth == 0:
             return redirect('studentHome')
+        elif user.u_auth == -1:
+            print("parentHome")
+            return redirect('parentHome')
         else:
             return redirect('teacherHome')
     
@@ -141,6 +140,8 @@ class LoginView(FormView):
                 self.request.session['user_id'] = user.u_id
                 if user.u_auth == 0:
                     return redirect('studentHome')
+                elif user.u_auth == -1:
+                    return redirect('parentHome')
                 else:
                     return redirect('teacherHome')
         except TblUser.DoesNotExist:
@@ -901,15 +902,18 @@ def save_oral_check(request):
 #講師側ビュー
 class TeacherHomeView(CustomLoginRequiredMixin,TemplateView):
     template_name = "teacher_pages/teacher_home.html"
-    
 
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
         school_id = self.request.session.get('school_id')
         user_id = self.request.session.get('user_id')
         account = get_account_info(self.request)
+        user_id = account.get('u_id')
         ctxt.update(get_teacher_home_context(school_id, user_id))
         ctxt.update(get_account_info(self.request))
+        qr_code_data = generate_qr_code(user_id)
+        ctxt['qr_code'] = qr_code_data
+
         return ctxt
 
 
@@ -922,8 +926,6 @@ class TaskAddStuListView(CustomLoginRequiredMixin,TemplateView):
         user_id = self.request.session.get('user_id')
         ctxt.update(get_account_info(self.request))
         ctxt.update(get_teacher_home_context(school_id, user_id))
-        print(ctxt)
-        
         return ctxt
     
 
@@ -1209,6 +1211,109 @@ class TaskDeleteView(View):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
 
+
+@csrf_exempt
+def qr_result(request):
+    if request.method == 'POST':
+        try:
+            # リクエストボディをJSONとして読み取る
+            data = json.loads(request.body)
+            qr_data = data.get('qr_data', '')  # 'qr_data' を取得
+
+            # qr_data が文字列の場合、辞書に変換
+            if isinstance(qr_data, str):
+                qr_data = json.loads(qr_data)
+
+            # qr_data が辞書形式か確認
+            if not isinstance(qr_data, dict):
+                return JsonResponse({'error': 'qr_dataが辞書形式ではありません'}, status=400)
+
+            # 必要なデータを取得
+            u_id = qr_data.get('u_id')
+            user = TblUser.objects.get(u_id=u_id)
+
+            # 今日の日付を取得
+            today = timezone.now().date()
+
+            # 今日の入室ログを取得
+            log = EntryExitLog.objects.filter(user=user, entry_time__date=today).order_by('-entry_time').first()
+
+            if log and log.status == 'entered':
+                # 既に入室中の場合、退出処理を行う
+                log.exit_time = timezone.now()
+                log.status = 'exited'
+                log.save()
+                return JsonResponse({'message': '退出処理が完了しました', 'log_id': log.id})
+            else:
+                # 入室処理を行う
+                log = EntryExitLog.objects.create(
+                    user=user,
+                    entry_time=timezone.now(),
+                    status='entered'
+                )
+                return JsonResponse({'message': '入室処理が完了しました', 'log_id': log.id})
+        except TblUser.DoesNotExist:
+            return JsonResponse({'error': '指定されたユーザーが存在しません'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': '無効なJSONデータ'}, status=400)
+    return JsonResponse({'error': '無効なリクエスト'}, status=400)
+
+class QRReaderView(TemplateView):
+    template_name = "teacher_pages/qr_reader.html"
+
+    def get_context_data(self, **kwargs):
+        ctxt = super().get_context_data(**kwargs)
+        ctxt.update(get_account_info(self.request))
+        today = timezone.now().date()
+        logs = EntryExitLog.objects.filter(entry_time__date=today)
+
+        # duration を「時間 分」の形式でフォーマット
+        for log in logs:
+            if log.duration:
+                total_seconds = int(log.duration.total_seconds())
+                hours, remainder = divmod(total_seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+                log.formatted_duration = f"{hours}時間 {minutes}分"
+            else:
+                log.formatted_duration = "未計算"
+
+        ctxt['logs'] = logs
+        return ctxt
+    
+    
+def get_latest_logs(request):
+    if request.method == 'GET':
+        today = timezone.now().date()
+        logs = EntryExitLog.objects.filter(entry_time__date=today).select_related('user')
+
+        log_data = []
+        for log in logs:
+            if log.duration:
+                total_seconds = int(log.duration.total_seconds())
+                hours, remainder = divmod(total_seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+                formatted_duration = f"{hours}時間 {minutes}分"
+            else:
+                formatted_duration = "未計算"
+
+            log_data.append({
+                'user_name': log.user.user_simei,
+                'entry_time': log.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
+                'exit_time': log.exit_time.strftime('%Y-%m-%d %H:%M:%S') if log.exit_time else "未退室",
+                'status': log.get_status_display(),
+                'duration': formatted_duration,
+            })
+
+        return JsonResponse({'logs': log_data})
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def keep_session_alive(request):
+    if request.session.session_key:
+        # セッションの有効期限を延長
+        request.session.modified = True
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
 #生徒側ビュー
 class StudentHomeView(CustomLoginRequiredMixin, TemplateView):
     template_name = "student_pages/student_home.html"
@@ -1216,26 +1321,19 @@ class StudentHomeView(CustomLoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctxt = super().get_context_data(**kwargs)
         ctxt.update(get_account_info(self.request))
-        
 
         user_id = self.request.session.get('user_id')
         user = TblUser.objects.get(u_id=user_id)
-        if user.u_auth == -1:
-            user.u_name = user.u_name[1:]
-            s_user = TblUser.objects.get(u_name=user.u_name)
-            user_id = s_user.u_id
-            
+
+        # QRコードを生成してコンテキストに追加
+        qr_code_data = generate_qr_code(user_id)
+        ctxt['qr_code'] = qr_code_data
+
         ctxt.update(get_home_context(user_id))
-        
+
         if user_id:
-            user = TblUser.objects.get(u_id=user_id)
-            ctxt['user_id'] = user_id
-            ctxt['user_name'] = user.u_name
-            ctxt['user_auth'] = user.u_auth
             ctxt['test_result_form'] = TestResultForm(user=user)
-            
-        print(ctxt)
-            
+
         return ctxt
     
     def post(self, request, *args, **kwargs):
@@ -1407,3 +1505,19 @@ def add_task_deadline(request):
 
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+#保護者側ビュー
+class ParentHomeView(CustomLoginRequiredMixin, TemplateView):
+    template_name = "parent_pages/parent_home.html"
+    
+    def get_context_data(self, **kwargs):
+        ctxt = super().get_context_data(**kwargs)
+        user_id = self.request.session.get('user_id')
+        account = get_account_info(self.request)
+        ctxt.update(get_account_info(self.request))
+        student_name = TblUser.objects.get(u_id=user_id).u_name[1:]
+        student = TblUser.objects.get(u_name=student_name)
+        ctxt["student_id"] = student.u_id
+        ctxt.update(get_home_context(student.u_id))
+        print(ctxt)
+        return ctxt
