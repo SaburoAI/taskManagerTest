@@ -55,9 +55,16 @@ class UserForm(forms.ModelForm):
 
 
 class LoginForm(forms.Form):
-    u_name = forms.CharField(label='ユーザー名', max_length=100)
-    u_pass = forms.CharField(label='パスワード', widget=forms.PasswordInput)
-
+    u_name = forms.CharField(
+        max_length=150,
+        required=True,
+        error_messages={'required': 'ユーザーIDを入力してください。'}
+    )
+    u_pass = forms.CharField(
+        widget=forms.PasswordInput,
+        required=True,
+        error_messages={'required': 'パスワードを入力してください。'}
+    )
 class TblTaskForm(forms.ModelForm):
     class Meta:
         model = TblTask

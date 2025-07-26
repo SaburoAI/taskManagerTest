@@ -40,9 +40,9 @@
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-edit">編集</button>
               </li>
               
-              <li class="nav-item">
+              {% comment %} <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#profile-change-password">パスワード変更</button>
-              </li>
+              </li> {% endcomment %}
          
             </ul>
             <div class="tab-content pt-2">
@@ -196,7 +196,7 @@
                         {{ message }}
                     {% endfor %}
                 </div>
-            {% endif %} 
+            {% endif %}
 
             </div><!-- End Bordered Tabs -->
           </div>

@@ -89,6 +89,17 @@
 
       {% endif %}
 
+       <!-- ログアウトメニュー（赤字） -->
+    <li class="nav-item mt-auto">
+      <form method="post" action="{% url 'logout' %}" style="margin:0;">
+        {% csrf_token %}
+        <button type="submit" class="nav-link collapsed" style="color: #dc3545; font-weight: bold; background: none; border: none; width: 100%; text-align: left;">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>ログアウト</span>
+        </button>
+      </form>
+    </li>
+
   
 
     </ul>

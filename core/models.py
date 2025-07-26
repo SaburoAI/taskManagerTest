@@ -277,3 +277,14 @@ class EntryExitLog(models.Model):
 
     def __str__(self):
         return f"{self.user.u_name} - {self.status}"
+    
+
+class Reservation(models.Model):
+    school=models.ForeignKey(TblSchoolid, on_delete=models.CASCADE, default=1)
+    user = models.ForeignKey(TblUser, on_delete=models.CASCADE, blank=True, null=True)
+    title = models.CharField(max_length=50)
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+
+    def __str__(self):
+        return self.title
