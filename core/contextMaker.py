@@ -8,10 +8,6 @@ from io import BytesIO
 from django.http import HttpResponse
 
 
-
-
-
-
 SAMPLE_SCHOOL = "ベイスクール"
 TopSchool = {
     "国語": 85,
